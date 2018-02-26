@@ -59,6 +59,8 @@ public abstract class Application
         ClassFinder classFinder = new ClassFinder(ArkTypeUtils.getPackageName(this.getClass()));
         classFinder.handleClassesAnnotatedWith(Controller.class, this::visitController);
         classFinder.scan();
+
+        router.precompute();
     }
 
     private void visitController (Class<?> controllerClass)
@@ -150,5 +152,10 @@ public abstract class Application
     public Environment getEnvironment ()
     {
         return environment;
+    }
+
+    protected final ReverseRouter getReverseRouter ()
+    {
+        return router;
     }
 }

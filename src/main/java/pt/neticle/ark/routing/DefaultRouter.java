@@ -3,12 +3,14 @@ package pt.neticle.ark.routing;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.HashBasedTable;
 import pt.neticle.ark.base.*;
+import pt.neticle.ark.data.Pair;
 import pt.neticle.ark.exceptions.ImplementationException;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -18,9 +20,11 @@ import java.util.stream.Stream;
 public class DefaultRouter implements TwoWayRouter
 {
     /**
-     * Maps controller routes to lists of action routes
+     * Contains a tree of all routes
+     *
+     * Each entry: Controller route -> List of action routes
      */
-    private final Map<Route<ControllerHandler>, List<Route<ActionHandler>>> routeTree;
+    private final List<Pair<Route<ControllerHandler>, List<Route<ActionHandler>>>> routeTree;
 
     /**
      * Reverse lookup maps
@@ -39,7 +43,7 @@ public class DefaultRouter implements TwoWayRouter
 
     public DefaultRouter ()
     {
-        routeTree = new HashMap<>();
+        routeTree = new ArrayList<>();
         controllersToRoutes = new HashMap<>();
         actionsToRoutes = new HashMap<>();
         reverseLookupTable = HashBasedTable.create();
@@ -49,13 +53,21 @@ public class DefaultRouter implements TwoWayRouter
     public void register (ActionHandler actionHandler)
     {
         Route<ControllerHandler> controllerRoute = controllersToRoutes.get(actionHandler.getControllerHandler());
+        List<Route<ActionHandler>> controllerActions;
 
         if(controllerRoute == null)
         {
             controllerRoute = Route.forController(actionHandler.getControllerHandler().getPath(), actionHandler.getControllerHandler());
-            routeTree.put(controllerRoute, new ArrayList<>());
-
+            routeTree.add(new Pair<>(controllerRoute, controllerActions = new ArrayList<>()));
             controllersToRoutes.put(actionHandler.getControllerHandler(), controllerRoute);
+        }
+        else
+        {
+            controllerActions = routeTree.stream()
+                .filter((p) -> p.A.node == actionHandler.getControllerHandler())
+                .map((p) -> p.B)
+                .findFirst()
+                .orElseThrow(() -> new ImplementationException());
         }
 
         Route<ActionHandler> actionRoute = Route.forAction
@@ -68,22 +80,33 @@ public class DefaultRouter implements TwoWayRouter
             actionHandler
         );
 
-        routeTree.get(controllerRoute).add(actionRoute);
+        controllerActions.add(actionRoute);
         actionsToRoutes.put(actionHandler, actionRoute);
         reverseLookupTable.put(actionHandler.getControllerHandler().getControllerClass(), actionHandler.getMethodName(), actionHandler);
     }
 
     @Override
+    public void precompute ()
+    {
+        routeTree.stream()
+            .map(e -> e.B)
+            .forEach((actions) -> actions.sort((a,b) -> a.greedScore - b.greedScore));
+
+        routeTree.sort((a,b) -> (a.B.stream().mapToInt((actionRt) -> actionRt.greedScore).sum() -
+                                b.B.stream().mapToInt((actionRt) -> actionRt.greedScore).sum()));
+    }
+
+    @Override
     public ActionHandler route (DispatchContext context)
     {
-        Route<ActionHandler> route = routeTree.entrySet().stream()
-            .filter((controllerRt) -> controllerRt.getKey().matches(context.getPath())) // check controllers first
-            .map((controllerRt) -> controllerRt.getValue().stream() // check matched controller's actions
-                .filter(actionRt -> actionRt.matches(context.getPath()))
+        Route<ActionHandler> route = routeTree.stream()
+            .filter((entry) -> entry.A.matches(context.getPath()))
+            .map((entry) -> entry.B.stream()
+                .filter((actionRt) -> actionRt.matches(context.getPath()))
                 .findFirst()
                 .orElse(null)
             )
-            .filter(a -> a != null)
+            .filter((entry) -> entry != null)
             .findFirst().orElse(null);
 
         if(route == null)
@@ -149,6 +172,8 @@ public class DefaultRouter implements TwoWayRouter
          */
         private final TNode node;
 
+        private final int greedScore;
+
         private Route (String declaration, Pattern pattern, String[] parameters, TNode node)
         {
             this.declaration = declaration;
@@ -156,7 +181,28 @@ public class DefaultRouter implements TwoWayRouter
             this.namedParameters = Arrays.asList(parameters);
             this.node = node;
 
-            this.template = declaration.replaceAll("(:[\\w]+)", "{}");
+            this.template = declaration.replaceAll("(:[\\w\\*?]+)", "{}");
+
+            int greed = 0;
+
+            List<String> parts = Arrays.stream(declaration.split("\\/"))
+                .filter(p -> p != null && p.length() > 0)
+                .collect(Collectors.toList());
+
+            if(parts.size() > 0)
+            {
+                if(parts.get(0).matches("^:\\w+\\*$"))
+                {
+                    greed += 50;
+                }
+
+                if(parts.get(parts.size()-1).matches("^:\\w+\\*$"))
+                {
+                    greed += 50;
+                }
+            }
+
+            this.greedScore = greed;
         }
 
         public boolean matches (String path)
@@ -226,12 +272,12 @@ public class DefaultRouter implements TwoWayRouter
         {
             String pattern = "^\\/" + Arrays.stream(path.split("\\/"))
                 .filter(p -> p.length() > 0)
-                .map(p -> p.startsWith(":") ? "([\\w-]+)" : Pattern.quote(p))
+                .map(p -> p.startsWith(":") ? (p.endsWith("*") ? "(.+)" : "([\\w-]+)") : Pattern.quote(p))
                 .collect(Collectors.joining("\\/")) + "\\/?$";
 
             String[] paramNames = Arrays.stream(path.split("\\/"))
                 .filter(p -> p.startsWith(":"))
-                .map(p -> p.substring(1))
+                .map(p -> p.endsWith("*") ? p.substring(1, p.length()-1) : p.substring(1))
                 .toArray(String[]::new);
 
             return new Route<>(path, Pattern.compile(pattern), paramNames, handler);
