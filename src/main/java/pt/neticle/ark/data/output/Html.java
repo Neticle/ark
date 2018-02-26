@@ -10,12 +10,12 @@ import java.nio.charset.Charset;
 
 public class Html extends Text<Html>
 {
-    public Html (OutputStream os, Charset charset)
+    private Html (OutputStream os, Charset charset)
     {
         super(os, new ContentType(MediaType.Text.HTML, charset));
     }
 
-    public Html (OutputStream os, InputStream is, Charset charset, Runnable bufferFlipper)
+    private Html (OutputStream os, InputStream is, Charset charset, Runnable bufferFlipper)
     {
         super(os, is, new ContentType(MediaType.Text.HTML, charset), bufferFlipper);
     }

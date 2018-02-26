@@ -16,7 +16,7 @@ public abstract class Text<T> extends Output<T> implements CharsetEncoded
     private final OutputStreamWriter writter;
 
     /* For usage with a provided existing buffer */
-    Text (OutputStream os, ContentType contentType)
+    protected Text (OutputStream os, ContentType contentType)
     {
         super(os);
 
@@ -25,7 +25,7 @@ public abstract class Text<T> extends Output<T> implements CharsetEncoded
     }
 
     /* For usage with a new buffer */
-    Text (OutputStream os, InputStream is, ContentType contentType, Runnable bufferFlipper)
+    protected Text (OutputStream os, InputStream is, ContentType contentType, Runnable bufferFlipper)
     {
         super(os, is, bufferFlipper);
 
