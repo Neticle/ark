@@ -1,14 +1,13 @@
 package pt.neticle.ark.data.output;
 
-import pt.neticle.ark.data.MediaType;
+import pt.neticle.ark.data.ContentType;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 
 public abstract class Output<T>
 {
-    protected MediaType contentType = null;
+    protected ContentType contentType = null;
     private final OutputStream ostream;
     private final InputStream istream;
     private final Runnable bufferFlipper;
@@ -27,7 +26,7 @@ public abstract class Output<T>
         this.bufferFlipper = () -> {};
     }
 
-    public MediaType getContentType ()
+    public ContentType getContentType ()
     {
         return contentType;
     }

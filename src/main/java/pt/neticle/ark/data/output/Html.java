@@ -8,31 +8,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
-public class Html extends PlainText
+public class Html extends Text<Html>
 {
-    private Html (OutputStream os, Charset encoding)
+    public Html (OutputStream os, Charset charset)
     {
-        super(os, encoding);
-        contentType = MediaType.Text.HTML;
+        super(os, new ContentType(MediaType.Text.HTML, charset));
     }
 
-    private Html (OutputStream os, InputStream is, Charset encoding, Runnable bufferFlipper)
+    public Html (OutputStream os, InputStream is, Charset charset, Runnable bufferFlipper)
     {
-        super(os, is, encoding, bufferFlipper);
-        contentType = MediaType.Text.HTML;
+        super(os, is, new ContentType(MediaType.Text.HTML, charset), bufferFlipper);
     }
 
-    @Override
     public Html append (String text)
     {
-        super.append(text);
+        appendString(text);
         return this;
-    }
-
-    @Override
-    public void setContentType (MediaType.Text contentType)
-    {
-        throw new ImplementationException("Html output object has an implicit media type text/html");
     }
 
     public static Html buffered (Charset encoding)

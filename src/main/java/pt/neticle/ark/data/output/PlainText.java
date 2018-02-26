@@ -9,80 +9,27 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-public class PlainText extends Output<PlainText> implements CharsetEncoded
+public class PlainText extends Text<PlainText>
 {
-    private final Charset charsetEncoding;
-    private final OutputStreamWriter writter;
-
-    /* For usage with a provided existing buffer */
-    PlainText (OutputStream os, Charset encoding)
+    public PlainText (OutputStream os, ContentType contentType)
     {
-        super(os);
-        charsetEncoding = encoding;
-        contentType = MediaType.Text.PLAIN;
-        writter = new OutputStreamWriter(output(), encoding);
+        super(os, contentType);
     }
 
-    /* For usage with a new buffer */
-    PlainText (OutputStream os, InputStream is, Charset encoding, Runnable bufferFlipper)
+    public PlainText (OutputStream os, InputStream is, ContentType contentType, Runnable bufferFlipper)
     {
-        super(os, is, bufferFlipper);
-        charsetEncoding = encoding;
-        contentType = MediaType.Text.PLAIN;
-        writter = new OutputStreamWriter(output(), encoding);
-
-        try
-        {
-            //writter.write('\ufeff');
-            output().write(0xef);
-            output().write(0xbb);
-            output().write(0xbf);
-        } catch(IOException e)
-        {
-            throw new ExternalConditionException(e);
-        }
-    }
-
-    public void setContentType (MediaType.Text contentType)
-    {
-        this.contentType = contentType;
-    }
-
-    @Override
-    public Charset getCharsetEncoding ()
-    {
-        return charsetEncoding;
-    }
-
-    @Override
-    public void ready ()
-    {
-        try
-        {
-            writter.flush();
-        } catch(IOException e)
-        {
-            throw new ExternalConditionException(e);
-        }
-
-        super.ready();
+        super(os, is, contentType, bufferFlipper);
     }
 
     public PlainText append (String text)
     {
-        try
-        {
-            writter.append(text);
-        } catch(IOException e)
-        {
-            throw new ExternalConditionException(e);
-        }
-
+        appendString(text);
         return this;
     }
 
-    public static PlainText buffered (Charset encoding)
+    public static PlainText buffered (ContentType contentType)
     {
         DynamicByteBuffer b = new DynamicByteBuffer(4096);
 
@@ -90,14 +37,14 @@ public class PlainText extends Output<PlainText> implements CharsetEncoded
         (
             new DynamicByteBufferOutputStream(b),
             new DynamicByteBufferInputStream(b),
-            encoding,
+            contentType,
             b::flip
         );
     }
 
     public static PlainText buffered ()
     {
-        return buffered(ArkDataUtils.UTF_8_CHARSET);
+        return buffered(new ContentType(MediaType.Text.PLAIN, StandardCharsets.UTF_8));
     }
 
     public static PlainText buffered (String initialContent)
@@ -107,6 +54,6 @@ public class PlainText extends Output<PlainText> implements CharsetEncoded
 
     public static PlainText direct (HttpResponse response)
     {
-        return new PlainText(response.contentOutput(), ArkDataUtils.UTF_8_CHARSET);
+        return new PlainText(response.contentOutput(), new ContentType(MediaType.Text.PLAIN, StandardCharsets.UTF_8));
     }
 }
