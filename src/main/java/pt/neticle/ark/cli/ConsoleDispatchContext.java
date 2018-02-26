@@ -4,6 +4,7 @@ import com.google.common.io.ByteStreams;
 import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.base.CliApplication;
 import pt.neticle.ark.base.DispatchContext;
+import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.data.MediaType;
 import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.exceptions.ArkRuntimeException;
@@ -45,14 +46,14 @@ public class ConsoleDispatchContext extends DispatchContext
             return;
         }
 
-        MediaType contentType = output.getContentType();
+        ContentType contentType = output.getContentType();
 
         if(contentType != null)
         {
             // TODO: Some Application content types are also represented as text, such as application/xml,
             // and application/json. We need to add flags to the media types so we can know which ones
             // can be printed, instead of accepting only text/* types.
-            if(!(contentType instanceof MediaType.Text))
+            if(!(contentType.getMediaType() instanceof MediaType.Text))
             {
                 try
                 {

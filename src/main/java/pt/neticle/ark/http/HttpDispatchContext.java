@@ -5,6 +5,7 @@ import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.base.Application;
 import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.ArkDataUtils;
+import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.data.MediaType;
 import pt.neticle.ark.data.output.CharsetEncoded;
 import pt.neticle.ark.data.output.Output;
@@ -58,18 +59,11 @@ public class HttpDispatchContext extends DispatchContext
     {
         // TODO: Outputs should return ContentType objects instead, as those already have the
         // charset information built-in
-        MediaType contentType = output.getContentType();
+        ContentType contentType = output.getContentType();
 
         if(contentType != null)
         {
-            String contentTypeVal = contentType.toString();
-
-            if(output instanceof CharsetEncoded)
-            {
-                contentTypeVal += "; charset=" + ((CharsetEncoded) output).getCharsetEncoding().name().toLowerCase();
-            }
-
-            response.setHeader("Content-Type", contentTypeVal);
+            response.setHeader("Content-Type", contentType.toString());
         }
 
         if(output.hasInputStream())
