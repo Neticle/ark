@@ -33,14 +33,14 @@ public abstract class CliApplication extends Application
 
     public void dispatch (String... arguments)
     {
-        dispatch
+        dispatchWithPath
         (
             arguments.length > 0 ? arguments[0] : "",
             arguments.length > 1 ? Arrays.copyOfRange(arguments, 1, arguments.length) : new String[0]
         );
     }
 
-    public final void dispatch (String path, String... arguments)
+    public final void dispatchWithPath (String path, String... arguments)
     {
         dispatch(prepareContext(path, arguments));
     }
