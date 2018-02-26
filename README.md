@@ -42,6 +42,14 @@ public class ExampleApp extends WebApplication
         this.storage.put(key.get(), value.orElse("unspecified"));
     }
 
+    @Action(path = ":key/read")
+    public void Read (Input<String> key)
+    {
+        // Parameters can be passed as part of the path, they automatically match based on name.
+        
+        return PlainText.buffered(key.get() + " is: " + this.storage.getOrDefault(key, "not present"));
+    }
+
     @Action
     public void List (HttpResponse response)
     {
@@ -81,6 +89,7 @@ You can now access your application with your web browser.
 
 * [http://localhost:8888/hello]() will display "Hello Ark"
 * [http://localhost:8888/add?key=foo&value=bar]() will add an entry (no response)
+* [http://localhost:8888/foo/read]() will display the entry we added ("foo")
 * [http://localhost:8888/list]() will display all available entries
 * [http://localhost:8888/add]() will display a "bad request" error - because it's missing one required input
 
