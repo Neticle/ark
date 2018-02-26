@@ -1,5 +1,6 @@
 package pt.neticle.ark.base;
 
+import pt.neticle.ark.annotations.Action;
 import pt.neticle.ark.data.Pair;
 import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.exceptions.ImplementationException;
@@ -29,6 +30,11 @@ public class ActionHandler
     private final String methodName;
 
     /**
+     * The associated annotation
+     */
+    private final Action annotation;
+
+    /**
      * The underlying action method
      */
     private final Method method;
@@ -55,6 +61,7 @@ public class ActionHandler
         controllerHandler = parent;
         methodName = actionMethod.getName();
         method = actionMethod;
+        annotation = method.getAnnotation(Action.class);
         parameters = new ArrayList<>();
 
         // Because of type erasure, the type parameters (generics) of the method parameters won't be available at runtime.
@@ -122,9 +129,6 @@ public class ActionHandler
         int i = 0;
         for(Pair<Parameter, ArkTypeUtils.ParameterType> parameter : parameters)
         {
-            // TODO: Note for improvement - we could actually save the injectors so we don't have to always look them
-            // up, since the method's signature isn't going to change...
-
             parameterValues[i] = env.inject(parameter.A.getType(), context, parameter.A, parameter.B)
                 // may not be present if there's no injection policy for desired type
                 .orElseThrow(() -> new ImplementationException.InjectionFailed("No injector available for type " + parameter.A.getType().getName()));
@@ -159,6 +163,11 @@ public class ActionHandler
     public String getMethodName ()
     {
         return methodName;
+    }
+
+    public String getDefinedPath ()
+    {
+        return annotation.path();
     }
 
     /**
