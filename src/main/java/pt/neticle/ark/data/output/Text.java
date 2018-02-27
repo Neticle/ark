@@ -9,9 +9,10 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public abstract class Text<T> extends Output<T> implements CharsetEncoded
+public abstract class Text<T> extends BufferedOutput<T> implements CharsetEncoded
 {
     private final OutputStreamWriter writter;
+    private ContentType contentType;
 
     /* For usage with a provided existing buffer */
     protected Text (OutputStream os, ContentType contentType)
@@ -19,6 +20,7 @@ public abstract class Text<T> extends Output<T> implements CharsetEncoded
         super(os);
 
         this.contentType = contentType;
+
         writter = new OutputStreamWriter(output(), this.contentType.getCharset());
     }
 
@@ -28,6 +30,7 @@ public abstract class Text<T> extends Output<T> implements CharsetEncoded
         super();
 
         this.contentType = contentType;
+
         writter = new OutputStreamWriter(output(), this.contentType.getCharset());
 
         if(this.contentType.getCharset().name().equals(StandardCharsets.UTF_8.name()))
@@ -74,4 +77,11 @@ public abstract class Text<T> extends Output<T> implements CharsetEncoded
     {
         return contentType.getCharset();
     }
+
+    @Override
+    public ContentType getContentType ()
+    {
+        return this.contentType;
+    }
+
 }

@@ -7,9 +7,7 @@ import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.ArkDataUtils;
 import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.data.MediaType;
-import pt.neticle.ark.data.output.CharsetEncoded;
-import pt.neticle.ark.data.output.Output;
-import pt.neticle.ark.data.output.PlainText;
+import pt.neticle.ark.data.output.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -57,18 +55,18 @@ public class HttpDispatchContext extends DispatchContext
     @Override
     public void handleActionOutput (Output output)
     {
-        ContentType contentType = output.getContentType();
-
-        if(contentType != null)
+        if(output instanceof ContentOutput)
         {
-            response.setHeader("Content-Type", contentType.toString());
+            ((ContentOutput<?>) output).contentType()
+                .ifPresent((contentType) -> response.setHeader("Content-Type", contentType.toString()));
         }
 
-        if(output.hasInternalBuffer())
+        if(output instanceof BufferedOutput &&
+            ((BufferedOutput<?>) output).hasInternalBuffer())
         {
             try
             {
-                output.writeTo(response.contentOutput());
+                ((BufferedOutput<?>) output).writeTo(response.contentOutput());
             } catch(IOException e)
             {
                 response.setStatusCode(HttpResponse.Status.INTERNAL_SERVER_ERROR);

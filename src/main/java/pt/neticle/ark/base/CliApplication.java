@@ -2,6 +2,7 @@ package pt.neticle.ark.base;
 
 import pt.neticle.ark.cli.ConsoleDispatchContext;
 import pt.neticle.ark.data.Converter;
+import pt.neticle.ark.view.ViewTemplateResolver;
 
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -16,9 +17,9 @@ public abstract class CliApplication extends Application
         super();
     }
 
-    public CliApplication (TwoWayRouter _router, Converter ioConverter)
+    public CliApplication (TwoWayRouter _router, Converter ioConverter, ViewTemplateResolver _viewTemplateResolver)
     {
-        super(_router, ioConverter);
+        super(_router, ioConverter, _viewTemplateResolver);
     }
 
     public OutputStream getOutputStream ()

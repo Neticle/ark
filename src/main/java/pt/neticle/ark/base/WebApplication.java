@@ -8,6 +8,7 @@ import pt.neticle.ark.http.HttpRequest;
 import pt.neticle.ark.http.HttpResponse;
 import pt.neticle.ark.injection.InlineInjectionPolicy;
 import pt.neticle.ark.runtime.Cast;
+import pt.neticle.ark.view.ViewTemplateResolver;
 
 public class WebApplication extends Application
 {
@@ -17,9 +18,9 @@ public class WebApplication extends Application
         configure();
     }
 
-    public WebApplication (TwoWayRouter _router, Converter ioConverter)
+    public WebApplication (TwoWayRouter _router, Converter ioConverter, ViewTemplateResolver _viewTemplateResolver)
     {
-        super(_router, ioConverter);
+        super(_router, ioConverter, _viewTemplateResolver);
         configure();
     }
 

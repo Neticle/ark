@@ -6,7 +6,7 @@ package pt.neticle.ark.base;
  *
  * During the application runtime the router will be used to match paths to actions.
  */
-public interface Router
+public interface Router extends ApplicationComponent
 {
     void register (ActionHandler actionHandler);
 

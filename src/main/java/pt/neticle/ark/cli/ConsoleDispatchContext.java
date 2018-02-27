@@ -5,6 +5,7 @@ import pt.neticle.ark.base.CliApplication;
 import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.data.MediaType;
+import pt.neticle.ark.data.output.BufferedOutput;
 import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.exceptions.ArkRuntimeException;
 import pt.neticle.ark.exceptions.ExternalConditionException;
@@ -40,12 +41,14 @@ public class ConsoleDispatchContext extends DispatchContext
     @Override
     public void handleActionOutput (Output output)
     {
-        if(!output.hasInternalBuffer())
+        if(!(output instanceof BufferedOutput))
         {
             return;
         }
 
-        ContentType contentType = output.getContentType();
+        BufferedOutput<?> bout = (BufferedOutput<?>) output;
+
+        ContentType contentType = bout.getContentType();
 
         if(contentType != null)
         {
@@ -68,7 +71,7 @@ public class ConsoleDispatchContext extends DispatchContext
 
         try
         {
-            output.writeTo(((CliApplication) this.getParent()).getOutputStream());
+            bout.writeTo(((CliApplication) this.getParent()).getOutputStream());
         } catch(IOException e)
         {
             System.err.println("Failed to output to console");
