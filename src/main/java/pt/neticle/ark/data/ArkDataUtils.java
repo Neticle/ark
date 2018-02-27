@@ -1,26 +1,20 @@
 package pt.neticle.ark.data;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A collection of utilitary methods pertaining to data manipulation.
  */
 public class ArkDataUtils
 {
-    public static final Charset UTF_8_CHARSET;
-
-    static {
-        // avoids having to fetch it all over the place and deal with the exceptions.
-        UTF_8_CHARSET = Charset.forName("UTF-8");
-    }
-
     /**
      * Decodes an application/x-www-form-urlencoded string using
      * the UTF-8 charset.
      */
     public static String decodeUrl (String s)
     {
-        return decodeUrl(s, UTF_8_CHARSET);
+        return decodeUrl(s, StandardCharsets.UTF_8);
     }
 
     /**

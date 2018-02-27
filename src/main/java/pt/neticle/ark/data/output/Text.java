@@ -1,11 +1,9 @@
 package pt.neticle.ark.data.output;
 
-import pt.neticle.ark.data.ArkDataUtils;
 import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.exceptions.ExternalConditionException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
@@ -24,10 +22,10 @@ public abstract class Text<T> extends Output<T> implements CharsetEncoded
         writter = new OutputStreamWriter(output(), this.contentType.getCharset());
     }
 
-    /* For usage with a new buffer */
-    protected Text (OutputStream os, InputStream is, ContentType contentType, Runnable bufferFlipper)
+    /* For usage with a internal buffer */
+    protected Text (ContentType contentType)
     {
-        super(os, is, bufferFlipper);
+        super();
 
         this.contentType = contentType;
         writter = new OutputStreamWriter(output(), this.contentType.getCharset());

@@ -1,6 +1,5 @@
 package pt.neticle.ark.cli;
 
-import com.google.common.io.ByteStreams;
 import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.base.CliApplication;
 import pt.neticle.ark.base.DispatchContext;
@@ -41,7 +40,7 @@ public class ConsoleDispatchContext extends DispatchContext
     @Override
     public void handleActionOutput (Output output)
     {
-        if(!output.hasInputStream())
+        if(!output.hasInternalBuffer())
         {
             return;
         }
@@ -69,7 +68,7 @@ public class ConsoleDispatchContext extends DispatchContext
 
         try
         {
-            ByteStreams.copy(output.inputStream(), ((CliApplication)this.getParent()).getOutputStream());
+            output.writeTo(((CliApplication) this.getParent()).getOutputStream());
         } catch(IOException e)
         {
             System.err.println("Failed to output to console");

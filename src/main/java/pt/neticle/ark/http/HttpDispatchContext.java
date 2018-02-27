@@ -57,8 +57,6 @@ public class HttpDispatchContext extends DispatchContext
     @Override
     public void handleActionOutput (Output output)
     {
-        // TODO: Outputs should return ContentType objects instead, as those already have the
-        // charset information built-in
         ContentType contentType = output.getContentType();
 
         if(contentType != null)
@@ -66,11 +64,11 @@ public class HttpDispatchContext extends DispatchContext
             response.setHeader("Content-Type", contentType.toString());
         }
 
-        if(output.hasInputStream())
+        if(output.hasInternalBuffer())
         {
             try
             {
-                ByteStreams.copy(output.inputStream(), response.contentOutput());
+                output.writeTo(response.contentOutput());
             } catch(IOException e)
             {
                 response.setStatusCode(HttpResponse.Status.INTERNAL_SERVER_ERROR);

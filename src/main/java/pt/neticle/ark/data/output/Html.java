@@ -1,12 +1,11 @@
 package pt.neticle.ark.data.output;
 
 import pt.neticle.ark.data.*;
-import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.http.HttpResponse;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class Html extends Text<Html>
 {
@@ -15,9 +14,9 @@ public class Html extends Text<Html>
         super(os, new ContentType(MediaType.Text.HTML, charset));
     }
 
-    private Html (OutputStream os, InputStream is, Charset charset, Runnable bufferFlipper)
+    private Html (Charset charset)
     {
-        super(os, is, new ContentType(MediaType.Text.HTML, charset), bufferFlipper);
+        super(new ContentType(MediaType.Text.HTML, charset));
     }
 
     public Html append (String text)
@@ -28,20 +27,12 @@ public class Html extends Text<Html>
 
     public static Html buffered (Charset encoding)
     {
-        DynamicByteBuffer b = new DynamicByteBuffer(4096);
-
-        return new Html
-        (
-            new DynamicByteBufferOutputStream(b),
-            new DynamicByteBufferInputStream(b),
-            encoding,
-            b::flip
-        );
+        return new Html(encoding);
     }
 
     public static Html buffered ()
     {
-        return Html.buffered(ArkDataUtils.UTF_8_CHARSET);
+        return Html.buffered(StandardCharsets.UTF_8);
     }
 
     public static Html buffered (String initialContent)
@@ -51,6 +42,6 @@ public class Html extends Text<Html>
 
     public static Html direct (HttpResponse response)
     {
-        return new Html(response.contentOutput(), ArkDataUtils.UTF_8_CHARSET);
+        return new Html(response.contentOutput(), StandardCharsets.UTF_8);
     }
 }

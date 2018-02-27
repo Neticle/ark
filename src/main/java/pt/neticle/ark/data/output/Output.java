@@ -2,28 +2,26 @@ package pt.neticle.ark.data.output;
 
 import pt.neticle.ark.data.ContentType;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 public abstract class Output<T>
 {
     protected ContentType contentType = null;
     private final OutputStream ostream;
-    private final InputStream istream;
-    private final Runnable bufferFlipper;
+    private final boolean internalBuffer;
 
-    Output (OutputStream os, InputStream is, Runnable bufferFlipper)
+    /* internal buffer */
+    Output ()
     {
-        ostream = os;
-        istream = is;
-        this.bufferFlipper = bufferFlipper;
+        ostream = new ByteArrayOutputStream(1024*2);
+        internalBuffer = true;
     }
 
+    /* externally provided buffer */
     Output (OutputStream os)
     {
         ostream = os;
-        istream = null;
-        this.bufferFlipper = () -> {};
+        internalBuffer = false;
     }
 
     public ContentType getContentType ()
@@ -31,23 +29,25 @@ public abstract class Output<T>
         return contentType;
     }
 
-    public boolean hasInputStream ()
-    {
-        return istream != null;
-    }
-
     protected final OutputStream output ()
     {
         return ostream;
     }
 
-    public final InputStream inputStream ()
+    public final void writeTo (OutputStream out) throws IOException
     {
-        return istream;
+        if(internalBuffer && ostream instanceof ByteArrayOutputStream)
+        {
+            ((ByteArrayOutputStream) ostream).writeTo(out);
+        }
+    }
+
+    public boolean hasInternalBuffer ()
+    {
+        return internalBuffer;
     }
 
     public void ready ()
     {
-        this.bufferFlipper.run();
     }
 }

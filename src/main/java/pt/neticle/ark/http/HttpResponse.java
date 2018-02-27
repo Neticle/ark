@@ -1,6 +1,5 @@
 package pt.neticle.ark.http;
 
-import pt.neticle.ark.data.ArkDataUtils;
 import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.data.MediaType;
 import pt.neticle.ark.data.Pair;
@@ -9,6 +8,7 @@ import pt.neticle.ark.exceptions.ExternalConditionException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 public interface HttpResponse extends HttpMessage
@@ -50,7 +50,7 @@ public interface HttpResponse extends HttpMessage
     {
         try
         {
-            contentOutput().write(str.getBytes(ArkDataUtils.UTF_8_CHARSET));
+            contentOutput().write(str.getBytes(StandardCharsets.UTF_8));
         } catch(IOException e)
         {
             throw new ExternalConditionException(e);
