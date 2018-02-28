@@ -57,6 +57,11 @@ public class DefaultViewTemplateResolver implements ViewTemplateResolver
         parent = app;
     }
 
+    protected Application getParent ()
+    {
+        return parent;
+    }
+
     @Override
     public void activate ()
     {
