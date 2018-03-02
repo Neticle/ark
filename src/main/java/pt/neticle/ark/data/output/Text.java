@@ -6,10 +6,11 @@ import pt.neticle.ark.exceptions.ExternalConditionException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public abstract class Text<T> extends BufferedOutput<T> implements CharsetEncoded
+public abstract class Text<T> extends BufferedOutput<T> implements CharsetEncoded, Appendable
 {
     private final OutputStreamWriter writter;
     private ContentType contentType;
@@ -45,6 +46,27 @@ public abstract class Text<T> extends BufferedOutput<T> implements CharsetEncode
                 throw new ExternalConditionException(e);
             }
         }
+    }
+
+    @Override
+    public Appendable append (CharSequence csq) throws IOException
+    {
+        writter.append(csq);
+        return this;
+    }
+
+    @Override
+    public Appendable append (CharSequence csq, int start, int end) throws IOException
+    {
+        writter.append(csq, start, end);
+        return this;
+    }
+
+    @Override
+    public Appendable append (char c) throws IOException
+    {
+        writter.append(c);
+        return this;
     }
 
     protected void appendString (String text)
