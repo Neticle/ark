@@ -10,14 +10,12 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * The default router implementation. Maps routes as a concatenation of the controller's path and
  * the action's name in lower-hyphen format.
  */
-public class DefaultRouter implements TwoWayRouter
+public class DefaultRouter implements Router, ReverseRouter
 {
     /**
      * Contains a tree of all routes

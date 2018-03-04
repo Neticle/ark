@@ -1,70 +1,51 @@
 package pt.neticle.ark.injection;
 
-import java.lang.reflect.Parameter;
-
-public class InjectionPolicy<TCriteria, TInjectedResult>
+public class InjectionPolicy<TInjectedResult>
 {
     public enum Criteria
     {
         /**
          * Object is candidate only when injection requires it's specific class
          */
-        SPECIFIC_CLASS,
+        SPECIFIC,
 
         /**
          * Object is candidate when injection requires it's base class
          */
-        BASE_CLASS,
-
-        /**
-         * Object is candidate when an interface it implements is required for injection
-         */
-        INTERFACE
+        BASE
     }
 
-    public enum ObjectLifetime
+    public enum ObjectLifespan
     {
-        ONE_INSTANCE_PER_APPLICATION,
-        ONE_INSTANCE_PER_CONTEXT,
-        ALWAYS_NEW_INSTANCE
+        RETAINED,
+        DISPOSABLE
     }
 
-    private final Class<TCriteria> criteriaType;
+    private final Class<?> criteriaType;
     private final Class<TInjectedResult> injectedResultType;
     private final Criteria criteria;
-    private final ObjectLifetime lifetime;
+    private final ObjectLifespan lifespan;
     private final Injector<TInjectedResult> injector;
 
-    public InjectionPolicy (Class<TCriteria> criteriaType, Class<TInjectedResult> injectedResultType, Criteria criteria, ObjectLifetime lifetime, Injector<TInjectedResult> injector)
+    public InjectionPolicy (Class<?> criteriaType, Class<TInjectedResult> injectedResultType, Criteria criteria, ObjectLifespan lifespan, Injector<TInjectedResult> injector)
     {
         this.criteriaType = criteriaType;
         this.injectedResultType = injectedResultType;
         this.criteria = criteria;
-        this.lifetime = lifetime;
+        this.lifespan = lifespan;
         this.injector = injector;
     }
 
-    public boolean matchesRequiredType (Parameter parameter)
+    public boolean matchesRequiredType (Class<?> required)
     {
-        if(criteria == Criteria.SPECIFIC_CLASS)
+        if(criteria == Criteria.SPECIFIC)
         {
-            return parameter.getType().equals(criteriaType);
+            return required == criteriaType;
         }
 
-        if(criteria == Criteria.BASE_CLASS)
+        else if (criteria == Criteria.BASE)
         {
-            return parameter.getType().isAssignableFrom(criteriaType);
-        }
-
-        if(criteria == Criteria.INTERFACE)
-        {
-            for(Class ifc : criteriaType.getInterfaces())
-            {
-                if(ifc.equals(parameter.getType()))
-                {
-                    return true;
-                }
-            }
+            return required.isAssignableFrom(criteriaType);
         }
 
         return false;
@@ -75,7 +56,7 @@ public class InjectionPolicy<TCriteria, TInjectedResult>
         return injector;
     }
 
-    public Class<TCriteria> getCriteriaType ()
+    public Class<?> getCriteriaType ()
     {
         return criteriaType;
     }
@@ -90,8 +71,8 @@ public class InjectionPolicy<TCriteria, TInjectedResult>
         return criteria;
     }
 
-    public ObjectLifetime getLifetime ()
+    public ObjectLifespan getObjectLifespan ()
     {
-        return lifetime;
+        return lifespan;
     }
 }

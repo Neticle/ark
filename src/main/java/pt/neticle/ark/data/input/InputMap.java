@@ -4,6 +4,7 @@ import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.Converter;
 import pt.neticle.ark.data.Pair;
 import pt.neticle.ark.exceptions.ImplementationException;
+import pt.neticle.ark.exceptions.InjectionException;
 import pt.neticle.ark.exceptions.InputException;
 
 import java.util.Collection;
@@ -31,20 +32,24 @@ public class InputMap<K, V>
     private final Map<K,V> map;
     private final String name;
 
-    public InputMap(DispatchContext context, String name, Class<K> keyDataType, Class<V> valueDataType)
+    public InputMap(DispatchContext context, String name, Class<K> keyDataType, Class<V> valueDataType) throws InjectionException.NoSuitableInjector
     {
         this.map = new HashMap<>();
         this.name = name;
 
         Converter.TypeConverter<String, K> keyConverter =
             keyDataType.isAssignableFrom(String.class) ? null :
-                context.getEnvironment().getIOConverter().getConverter(String.class, keyDataType)
+                context.inject(Converter.class, "io", null)
+                .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
+                .getConverter(String.class, keyDataType)
                 .orElseThrow(() -> new ImplementationException("No converter available for String -> " + keyDataType.getName()));
 
         Converter.TypeConverter<String, V> valueConverter =
             keyDataType == valueDataType ? (Converter.TypeConverter<String, V>) keyConverter :
                 valueDataType.isAssignableFrom(String.class) ? null :
-                    context.getEnvironment().getIOConverter().getConverter(String.class, valueDataType)
+                    context.inject(Converter.class, "io", null)
+                    .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
+                    .getConverter(String.class, valueDataType)
                     .orElseThrow(() -> new ImplementationException("No converter available for String -> " + valueDataType.getName()));
 
         context.parameters()

@@ -1,6 +1,9 @@
 package pt.neticle.ark.data.input;
 
 import pt.neticle.ark.base.DispatchContext;
+import pt.neticle.ark.data.Converter;
+import pt.neticle.ark.exceptions.ImplementationException;
+import pt.neticle.ark.exceptions.InjectionException;
 import pt.neticle.ark.exceptions.InputException;
 
 /**
@@ -18,7 +21,7 @@ public class Input<T>
     private final T data;
     private final String originalTextValue;
 
-    public Input (DispatchContext context, String name, Class<T> dataType)
+    public Input (DispatchContext context, String name, Class<T> dataType) throws InjectionException.NoSuitableInjector
     {
         originalTextValue = context
             .parameters()
@@ -32,7 +35,9 @@ public class Input<T>
         }
         else
         {
-            data = context.getEnvironment().getIOConverter().transform(originalTextValue, String.class).into(dataType)
+            data = context.inject(Converter.class, "io", null)
+                .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
+                .transform(originalTextValue, String.class).into(dataType)
                 .orElseThrow(() -> new InputException.MalformedData("Invalid format for supplied value of " + name + " parameter"));
         }
 

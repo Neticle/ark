@@ -11,4 +11,6 @@ public interface Router extends ApplicationComponent
     void register (ActionHandler actionHandler);
 
     ActionHandler route (DispatchContext context);
+
+    void precompute ();
 }

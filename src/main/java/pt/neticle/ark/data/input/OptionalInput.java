@@ -1,6 +1,9 @@
 package pt.neticle.ark.data.input;
 
 import pt.neticle.ark.base.DispatchContext;
+import pt.neticle.ark.data.Converter;
+import pt.neticle.ark.exceptions.ImplementationException;
+import pt.neticle.ark.exceptions.InjectionException;
 import pt.neticle.ark.exceptions.InputException;
 
 import java.util.function.Consumer;
@@ -19,7 +22,7 @@ public class OptionalInput<T>
     private final T data;
     private final String originalTextValue;
 
-    public OptionalInput (DispatchContext context, String name, Class<T> dataType)
+    public OptionalInput (DispatchContext context, String name, Class<T> dataType) throws InjectionException.NoSuitableInjector
     {
         originalTextValue = context
             .parameters()
@@ -39,7 +42,9 @@ public class OptionalInput<T>
             }
             else
             {
-                data = context.getEnvironment().getIOConverter().transform(originalTextValue, String.class).into(dataType)
+                data = context.inject(Converter.class, "io", null)
+                    .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
+                    .transform(originalTextValue, String.class).into(dataType)
                     .orElseThrow(() -> new InputException.MalformedData("Invalid format for supplied value of " + name + " parameter"));
             }
         }

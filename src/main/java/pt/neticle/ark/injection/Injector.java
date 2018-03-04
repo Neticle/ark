@@ -7,6 +7,6 @@ import java.lang.reflect.Parameter;
 
 public interface Injector<TInjectedResult>
 {
-    TInjectedResult inject(Context context, Parameter parameter, ArkTypeUtils.ParameterType parameterType);
+    TInjectedResult inject (Context requestingContext, String name, ArkTypeUtils.ParameterType typeData);
     void cleanup(Context context, TInjectedResult object);
 }
