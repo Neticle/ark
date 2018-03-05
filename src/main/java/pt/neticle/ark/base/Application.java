@@ -37,46 +37,52 @@ import java.util.stream.Collectors;
  */
 public abstract class Application
 {
-    private final TwoWayRouter router;
-    private final ViewTemplateResolver viewTemplateResolver;
-    protected final ApplicationEnvironment environment;
+    private final Context mainContext;
+    private final ApplicationContext context;
+    private final List<ApplicationComponent> components;
 
     public Application ()
     {
-        this(new DefaultRouter(), new DefaultConverter(), new DefaultViewTemplateResolver());
+        this(new DefaultMainContext());
     }
 
-    public Application (TwoWayRouter _router, Converter ioConverter, ViewTemplateResolver _viewTemplateResolver)
+    public Application (PolicyHoldingContext mainContext)
     {
-        environment = new ApplicationEnvironment(ioConverter);
+        this.mainContext = mainContext;
+        this.context = new ApplicationContext(this.mainContext);
+        this.components = new ArrayList<>();
 
-        router = _router;
-        router.setParentApplication(this);
+        component(context().getViewTemplateResolver());
+        component(context().getRouter());
 
-        viewTemplateResolver = _viewTemplateResolver;
-        viewTemplateResolver.setParentApplication(this);
-
-        // A few pre-configured policies
-        environment.addPolicy(new InputInjectionPolicy());
-        environment.addPolicy(new OptionalInputInjectionPolicy());
-        environment.addPolicy(new InputListInjectorPolicy());
-        environment.addPolicy(new InputMapInjectionPolicy());
-
-        environment.addPolicy(new InlineInjectionPolicy<>
-        (
-            ReverseRouter.class,
-            (context, param, paramType) -> this.router
-        ));
+        initialize();
 
         ClassFinder classFinder = new ClassFinder(ArkTypeUtils.getPackageName(this.getClass()));
         classFinder.handleClassesAnnotatedWith(Controller.class, this::visitController);
         classFinder.handleClassesAnnotatedWith(TemplateObject.class, this::visitTemplateObject);
         classFinder.scan();
 
-        router.precompute();
-        router.activate();
+        activate();
+    }
 
-        viewTemplateResolver.activate();
+    public ApplicationContext context ()
+    {
+        return context;
+    }
+
+    protected void component (ApplicationComponent component)
+    {
+        components.add(component);
+    }
+
+    protected void initialize ()
+    {
+        components.forEach((c) -> c.initialize(context));
+    }
+
+    protected void activate ()
+    {
+        components.forEach(ApplicationComponent::activate);
     }
 
     private void visitController (Class<?> controllerClass)
@@ -116,17 +122,17 @@ public abstract class Application
             return;
         }
 
-        viewTemplateResolver.foundTemplateObject((Class<? extends Template>) tClass, tClass.getAnnotation(TemplateObject.class));
+        context().getViewTemplateResolver().foundTemplateObject((Class<? extends Template>) tClass, tClass.getAnnotation(TemplateObject.class));
     }
 
     private void registerAction (ActionHandler actionHandler)
     {
-        this.router.register(actionHandler);
+        context().getRouter().register(actionHandler);
     }
 
     protected final void dispatch (DispatchContext context)
     {
-        ActionHandler action = router.route(context);
+        ActionHandler action = context().getRouter().route(context);
 
         if(action == null)
         {
@@ -154,7 +160,7 @@ public abstract class Application
 
             if(output instanceof View)
             {
-                Template tmpl = viewTemplateResolver.resolve(context.getClass(), action, (View) output);
+                Template tmpl = context().getViewTemplateResolver().resolve(context.getClass(), action, (View) output);
 
                 if(tmpl == null)
                 {
@@ -180,7 +186,7 @@ public abstract class Application
 
     protected final void dispatchWithoutErrorHandling (DispatchContext context) throws Throwable
     {
-        ActionHandler action = router.route(context);
+        ActionHandler action = context().getRouter().route(context);
 
         if(action == null)
         {
@@ -195,7 +201,7 @@ public abstract class Application
 
             if(output instanceof View)
             {
-                Template tmpl = viewTemplateResolver.resolve(context.getClass(), action, (View)output);
+                Template tmpl = context().getViewTemplateResolver().resolve(context.getClass(), action, (View)output);
 
                 if(tmpl == null)
                 {
@@ -208,15 +214,5 @@ public abstract class Application
 
             context.handleActionOutput(output);
         }
-    }
-
-    public Environment getEnvironment ()
-    {
-        return environment;
-    }
-
-    protected final ReverseRouter getReverseRouter ()
-    {
-        return router;
     }
 }

@@ -1,7 +1,12 @@
 package pt.neticle.ark.base;
 
+import pt.neticle.ark.exceptions.InjectionException;
+import pt.neticle.ark.injection.InjectionPolicy;
+import pt.neticle.ark.introspection.ArkTypeUtils;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The context serves the purpose of encapsulating various usages of the application.
@@ -15,12 +20,12 @@ import java.util.Map;
  * between a client and server, subclasses such as {@link pt.neticle.ark.base.DispatchContext}
  * and {@link pt.neticle.ark.http.HttpDispatchContext} exist.
  */
-public class Context
+public abstract class Context
 {
     /**
-     * The application that created this context
+     * The parent context
      */
-    private final Application parent;
+    protected final Context parent;
 
     /**
      * Whenever an object is injected, if it's injection policy states that there should be only one instance
@@ -31,9 +36,9 @@ public class Context
     /**
      * Creates a new context, given the creator application.
      *
-     * @param parent The parent/creator application
+     * @param parent The parent/creator context
      */
-    public Context (Application parent)
+    public Context (Context parent)
     {
         this.parent = parent;
         this.savedInstances = new HashMap<>();
@@ -44,40 +49,44 @@ public class Context
      *
      * @return The parent application
      */
-    public Application getParent ()
+    public Context getParent ()
     {
         return parent;
     }
 
-    /**
-     * Get a saved instance of the specified type.
-     *
-     * @param c The class of the instance to retrieve
-     * @return The saved instance, if present, null otherwise
-     */
-    protected Object getSavedInstance(Class c)
+    public Optional<InjectionPolicy> getPolicyFor (Class desiredType, Context requestingContext)
     {
-        return savedInstances.get(c);
+        return parent != null ? parent.getPolicyFor(desiredType, requestingContext) : Optional.empty();
     }
 
-    /**
-     * Saves an object of the given type for future use.
-     *
-     * @param c The class of the object to save
-     * @param o The object to save
-     */
-    protected void saveInstance (Class c, Object o)
+    public <TDesired> Optional<TDesired> inject (Class<TDesired> desiredType,
+                                                String name,
+                                                ArkTypeUtils.ParameterType typeData,
+                                                Context requestingContext) throws InjectionException.NoSuitableInjector
     {
-        savedInstances.put(c, o);
+        InjectionPolicy policy = getPolicyFor(desiredType, requestingContext)
+            .orElseThrow(() -> new InjectionException.NoSuitableInjector(desiredType));
+
+        Object instance = null;
+
+        if(policy.getObjectLifespan() == InjectionPolicy.ObjectLifespan.RETAINED)
+        {
+            instance = savedInstances.computeIfAbsent(policy.getInjectedResultType(), (t) ->
+                policy.getInjector().inject(requestingContext, name, typeData));
+        }
+
+        else if (policy.getObjectLifespan() == InjectionPolicy.ObjectLifespan.DISPOSABLE)
+        {
+            instance = policy.getInjector().inject(requestingContext, name, typeData);
+        }
+
+        return Optional.ofNullable((TDesired)instance);
     }
 
-    /**
-     * Get the current applicational environment
-     *
-     * @return The current applicational environment
-     */
-    public Environment getEnvironment ()
+    public <TDesired> Optional<TDesired> inject (Class<TDesired> desiredType,
+                                                 String name,
+                                                 ArkTypeUtils.ParameterType typeData) throws InjectionException.NoSuitableInjector
     {
-        return this.parent.getEnvironment();
+        return inject(desiredType, name, typeData, this);
     }
 }

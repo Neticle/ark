@@ -5,26 +5,26 @@ import pt.neticle.ark.introspection.ArkTypeUtils;
 
 import java.lang.reflect.Parameter;
 
-public class InlineInjectionPolicy<T> extends InjectionPolicy<T,T>
+public class InlineInjectionPolicy<T> extends InjectionPolicy<T>
 {
     public InlineInjectionPolicy (Class<T> type, InjectorFunction<T> injectorFn)
     {
-        this(type, ObjectLifetime.ALWAYS_NEW_INSTANCE, injectorFn, (context, object) -> {});
+        this(type, ObjectLifespan.DISPOSABLE, injectorFn, (context, object) -> {});
     }
 
     public InlineInjectionPolicy (Class<T> type, InjectorFunction<T> injectorFn, CleanupFunction<T> cleanupFn)
     {
-        this(type, ObjectLifetime.ALWAYS_NEW_INSTANCE, injectorFn, cleanupFn);
+        this(type, ObjectLifespan.DISPOSABLE, injectorFn, cleanupFn);
     }
 
-    public InlineInjectionPolicy (Class<T> type, ObjectLifetime lifetime, InjectorFunction<T> injectorFn)
+    public InlineInjectionPolicy (Class<T> type, ObjectLifespan lifetime, InjectorFunction<T> injectorFn)
     {
         this(type, lifetime, injectorFn, (context, object) -> {});
     }
 
-    public InlineInjectionPolicy (Class<T> type, ObjectLifetime lifetime, InjectorFunction<T> injectorFn, CleanupFunction<T> cleanupFn)
+    public InlineInjectionPolicy (Class<T> type, ObjectLifespan lifetime, InjectorFunction<T> injectorFn, CleanupFunction<T> cleanupFn)
     {
-        super(type, type, Criteria.SPECIFIC_CLASS, lifetime, new FunctionalInjector<T>(injectorFn, cleanupFn));
+        super(type, type, Criteria.SPECIFIC, lifetime, new FunctionalInjector<T>(injectorFn, cleanupFn));
     }
 
     private static class FunctionalInjector<T> implements Injector<T>
@@ -39,9 +39,9 @@ public class InlineInjectionPolicy<T> extends InjectionPolicy<T,T>
         }
 
         @Override
-        public T inject (Context context, Parameter parameter, ArkTypeUtils.ParameterType parameterType)
+        public T inject (Context context, String name, ArkTypeUtils.ParameterType parameterType)
         {
-            return injectorFn.inject(context, parameter, parameterType);
+            return injectorFn.inject(context, name, parameterType);
         }
 
         @Override
@@ -54,7 +54,7 @@ public class InlineInjectionPolicy<T> extends InjectionPolicy<T,T>
     @FunctionalInterface
     public interface InjectorFunction<T>
     {
-        T inject(Context context, Parameter parameter, ArkTypeUtils.ParameterType parameterType);
+        T inject(Context context, String name, ArkTypeUtils.ParameterType typeInfo);
     }
 
     @FunctionalInterface

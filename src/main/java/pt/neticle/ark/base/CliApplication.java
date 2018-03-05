@@ -1,8 +1,6 @@
 package pt.neticle.ark.base;
 
 import pt.neticle.ark.cli.ConsoleDispatchContext;
-import pt.neticle.ark.data.Converter;
-import pt.neticle.ark.view.ViewTemplateResolver;
 
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -12,14 +10,9 @@ public abstract class CliApplication extends Application
 {
     private OutputStream outputStream;
 
-    public CliApplication ()
+    public CliApplication (PolicyHoldingContext mainContext)
     {
-        super();
-    }
-
-    public CliApplication (TwoWayRouter _router, Converter ioConverter, ViewTemplateResolver _viewTemplateResolver)
-    {
-        super(_router, ioConverter, _viewTemplateResolver);
+        super(mainContext);
     }
 
     public OutputStream getOutputStream ()
@@ -53,12 +46,12 @@ public abstract class CliApplication extends Application
 
     protected final ConsoleDispatchContext prepareContext (String path, String... arguments)
     {
-        return new ConsoleDispatchContext(this, path, arguments);
+        return new ConsoleDispatchContext(context(), path, arguments, getOutputStream());
     }
 
     protected final ConsoleDispatchContext prepareContext
         (String path, List<DispatchContext.DispatchParameter> parameters)
     {
-        return new ConsoleDispatchContext(this, path, parameters);
+        return new ConsoleDispatchContext(context(), path, parameters, getOutputStream());
     }
 }

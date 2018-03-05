@@ -3,6 +3,7 @@ package pt.neticle.ark.data.input;
 import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.Converter;
 import pt.neticle.ark.exceptions.ImplementationException;
+import pt.neticle.ark.exceptions.InjectionException;
 import pt.neticle.ark.exceptions.InputException;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class InputList<T>
     private final List<T> list;
     private final String name;
 
-    public InputList (DispatchContext context, String name, Class<T> itemDataType)
+    public InputList (DispatchContext context, String name, Class<T> itemDataType) throws InjectionException.NoSuitableInjector
     {
         this.name = name;
 
@@ -32,9 +33,10 @@ public class InputList<T>
 
         if(!itemDataType.isAssignableFrom(String.class))
         {
-            typeConverter =
-                context.getEnvironment().getIOConverter().getConverter(String.class, itemDataType)
-                    .orElseThrow(() -> new ImplementationException("No converter available for String -> " + itemDataType.getName()));
+            typeConverter = context.inject(Converter.class, "io", null)
+                .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
+                .getConverter(String.class, itemDataType)
+                .orElseThrow(() -> new ImplementationException("No converter available for String -> " + itemDataType.getName()));
         }
         else
         {

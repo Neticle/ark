@@ -119,19 +119,14 @@ public class ActionHandler
      */
     protected Output<?> dispatch (DispatchContext context) throws Throwable
     {
-        // our application environment contains routines to inject objects based on pre-defined injection policies,
-        // as well as access to some shared utilitary objects
-        Environment env = context.getEnvironment();
-
         // The array that will carry the method arguments
         Object[] parameterValues = new Object[parameters.size()];
 
         int i = 0;
         for(Pair<Parameter, ArkTypeUtils.ParameterType> parameter : parameters)
         {
-            parameterValues[i] = env.inject(parameter.A.getType(), context, parameter.A, parameter.B)
-                // may not be present if there's no injection policy for desired type
-                .orElseThrow(() -> new ImplementationException.InjectionFailed("No injector available for type " + parameter.A.getType().getName()));
+            parameterValues[i] = context.inject(parameter.A.getType(), parameter.A.getName(), parameter.B)
+                .orElseThrow(() -> new ImplementationException.InjectionFailed("Unable to inject value for parameter " + parameter.A.getName()));
 
             i++;
         }

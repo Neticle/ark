@@ -22,7 +22,7 @@ public abstract class DispatchContext extends Context
      */
     private final List<DispatchParameter> parameters;
 
-    public DispatchContext (Application parent, String path, List<DispatchParameter> parameters)
+    public DispatchContext (Context parent, String path, List<DispatchParameter> parameters)
     {
         super(parent);
         this.path = path;

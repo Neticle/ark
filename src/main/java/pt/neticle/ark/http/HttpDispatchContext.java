@@ -3,6 +3,7 @@ package pt.neticle.ark.http;
 import com.google.common.io.ByteStreams;
 import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.base.Application;
+import pt.neticle.ark.base.Context;
 import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.ArkDataUtils;
 import pt.neticle.ark.data.ContentType;
@@ -24,7 +25,7 @@ public class HttpDispatchContext extends DispatchContext
     private final HttpRequest request;
     private final HttpResponse response;
 
-    public HttpDispatchContext (Application parent, HttpRequest request, HttpResponse response)
+    public HttpDispatchContext (Context parent, HttpRequest request, HttpResponse response)
     {
         super
         (

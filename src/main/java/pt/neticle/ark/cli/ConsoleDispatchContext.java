@@ -2,6 +2,7 @@ package pt.neticle.ark.cli;
 
 import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.base.CliApplication;
+import pt.neticle.ark.base.Context;
 import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.data.MediaType;
@@ -13,13 +14,16 @@ import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.exceptions.InputException;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ConsoleDispatchContext extends DispatchContext
 {
-    public ConsoleDispatchContext (CliApplication parent, String path, String[] args)
+    private final OutputStream response;
+
+    public ConsoleDispatchContext (Context parent, String path, String[] args, OutputStream response)
     {
         this
         (
@@ -29,13 +33,15 @@ public class ConsoleDispatchContext extends DispatchContext
                 .map(param -> param.split("="))
                 .filter(parts -> parts.length == 2)
                 .map(parts -> new DispatchParameter(parts[0], parts[1]))
-                .collect(Collectors.toList())
+                .collect(Collectors.toList()),
+            response
         );
     }
 
-    public ConsoleDispatchContext (CliApplication parent, String path, List<DispatchParameter> parameters)
+    public ConsoleDispatchContext (Context parent, String path, List<DispatchParameter> parameters, OutputStream response)
     {
         super(parent, path, parameters);
+        this.response = response;
     }
 
     @Override
@@ -60,7 +66,7 @@ public class ConsoleDispatchContext extends DispatchContext
                 try
                 {
                     // If content isn't text based, don't display it, just display it's type
-                    ((CliApplication) this.getParent()).getOutputStream().write(("[" + contentType.toString() + "]").getBytes());
+                    response.write(("[" + contentType.toString() + "]").getBytes());
                 } catch(IOException e)
                 {
                     e.printStackTrace();
@@ -71,7 +77,7 @@ public class ConsoleDispatchContext extends DispatchContext
 
         try
         {
-            bout.writeTo(((CliApplication) this.getParent()).getOutputStream());
+            bout.writeTo(response);
         } catch(IOException e)
         {
             System.err.println("Failed to output to console");
@@ -95,7 +101,7 @@ public class ConsoleDispatchContext extends DispatchContext
             {
                 System.err.println("An internal application error occurred");
 
-                if(getEnvironment().inDeveloperMode())
+                //if(getEnvironment().inDeveloperMode())
                 {
                     cause.printStackTrace();
                 }
@@ -114,7 +120,7 @@ public class ConsoleDispatchContext extends DispatchContext
 
                 System.err.print('\n');
 
-                if(getEnvironment().inDeveloperMode())
+                //if(getEnvironment().inDeveloperMode())
                 {
                     cause.printStackTrace();
                 }
@@ -131,7 +137,7 @@ public class ConsoleDispatchContext extends DispatchContext
     {
         System.err.println("An unexpected internal application error occurred");
 
-        if(getEnvironment().inDeveloperMode())
+        //if(getEnvironment().inDeveloperMode())
         {
             cause.printStackTrace();
         }

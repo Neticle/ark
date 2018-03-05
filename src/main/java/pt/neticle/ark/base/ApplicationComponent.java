@@ -5,7 +5,7 @@ package pt.neticle.ark.base;
  */
 public interface ApplicationComponent
 {
-    default void setParentApplication (Application app) {};
+    default void initialize (ApplicationContext context) {};
 
     default void activate () {};
 }
