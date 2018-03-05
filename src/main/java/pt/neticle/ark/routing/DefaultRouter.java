@@ -84,7 +84,7 @@ public class DefaultRouter implements Router, ReverseRouter
     }
 
     @Override
-    public void precompute ()
+    public void activate ()
     {
         routeTree.stream()
             .map(e -> e.B)

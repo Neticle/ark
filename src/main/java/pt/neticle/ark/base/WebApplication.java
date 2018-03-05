@@ -16,6 +16,12 @@ public class WebApplication extends Application
         configure();
     }
 
+    public WebApplication (PolicyHoldingContext mainContext)
+    {
+        super(mainContext);
+        configure();
+    }
+
     private void configure ()
     {
         context().addPolicy(new InlineInjectionPolicy<>(

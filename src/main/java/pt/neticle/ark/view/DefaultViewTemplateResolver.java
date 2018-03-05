@@ -4,6 +4,7 @@ import com.google.common.collect.HashBasedTable;
 import pt.neticle.ark.annotations.TemplateObject;
 import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.base.Application;
+import pt.neticle.ark.base.ApplicationContext;
 import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.introspection.ArkReflectionUtils;
@@ -17,7 +18,7 @@ import pt.neticle.ark.introspection.ArkReflectionUtils;
  */
 public class DefaultViewTemplateResolver implements ViewTemplateResolver
 {
-    private Application parent;
+    private ApplicationContext context;
     private boolean active;
     private final HashBasedTable<Class<?>, String, Template> templates;
 
@@ -52,14 +53,14 @@ public class DefaultViewTemplateResolver implements ViewTemplateResolver
     }
 
     @Override
-    public void setParentApplication (Application app)
+    public void initialize (ApplicationContext context)
     {
-        parent = app;
+        this.context = context;
     }
 
-    protected Application getParent ()
+    protected ApplicationContext context ()
     {
-        return parent;
+        return context;
     }
 
     @Override

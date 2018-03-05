@@ -39,6 +39,7 @@ public abstract class Application
 {
     private final Context mainContext;
     private final ApplicationContext context;
+    private final List<ApplicationComponent> components;
 
     public Application ()
     {
@@ -49,22 +50,39 @@ public abstract class Application
     {
         this.mainContext = mainContext;
         this.context = new ApplicationContext(this.mainContext);
+        this.components = new ArrayList<>();
+
+        component(context().getViewTemplateResolver());
+        component(context().getRouter());
+
+        initialize();
 
         ClassFinder classFinder = new ClassFinder(ArkTypeUtils.getPackageName(this.getClass()));
         classFinder.handleClassesAnnotatedWith(Controller.class, this::visitController);
         classFinder.handleClassesAnnotatedWith(TemplateObject.class, this::visitTemplateObject);
         classFinder.scan();
 
-        context().getRouter().precompute();
-        if(context().getReverseRouter() != context().getRouter())
-        {
-            context().getReverseRouter().precompute();
-        }
+        activate();
     }
 
     public ApplicationContext context ()
     {
         return context;
+    }
+
+    protected void component (ApplicationComponent component)
+    {
+        components.add(component);
+    }
+
+    protected void initialize ()
+    {
+        components.forEach((c) -> c.initialize(context));
+    }
+
+    protected void activate ()
+    {
+        components.forEach(ApplicationComponent::activate);
     }
 
     private void visitController (Class<?> controllerClass)

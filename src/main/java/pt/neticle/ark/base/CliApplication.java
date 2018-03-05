@@ -10,6 +10,11 @@ public abstract class CliApplication extends Application
 {
     private OutputStream outputStream;
 
+    public CliApplication (PolicyHoldingContext mainContext)
+    {
+        super(mainContext);
+    }
+
     public OutputStream getOutputStream ()
     {
         return outputStream == null ? System.out : outputStream;
