@@ -1,29 +1,33 @@
+// Copyright 2018 Igor Azevedo <igor.azevedo@neticle.pt>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package pt.neticle.ark.base;
 
 import pt.neticle.ark.annotations.Action;
 import pt.neticle.ark.annotations.Controller;
 import pt.neticle.ark.annotations.TemplateObject;
-import pt.neticle.ark.data.Converter;
-import pt.neticle.ark.data.DefaultConverter;
-import pt.neticle.ark.data.output.ContentOutput;
 import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.exceptions.InputException;
-import pt.neticle.ark.http.*;
-import pt.neticle.ark.injection.*;
 import pt.neticle.ark.introspection.ArkReflectionUtils;
 import pt.neticle.ark.introspection.ArkTypeUtils;
 import pt.neticle.ark.introspection.ClassFinder;
-import pt.neticle.ark.routing.DefaultRouter;
-import pt.neticle.ark.runtime.Cast;
-import pt.neticle.ark.view.DefaultViewTemplateResolver;
 import pt.neticle.ark.view.Template;
 import pt.neticle.ark.view.View;
-import pt.neticle.ark.view.ViewTemplateResolver;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The base Ark Application class contains all functionality necessary to run and serve requests/commands
