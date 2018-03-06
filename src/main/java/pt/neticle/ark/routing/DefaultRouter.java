@@ -284,7 +284,7 @@ public class DefaultRouter implements Router, ReverseRouter
         {
             String pattern = "^\\/" + Arrays.stream(path.split("\\/"))
                 .filter(p -> p.length() > 0)
-                .map(p -> p.startsWith(":") ? (p.endsWith("*") ? "(.+)" : "([\\w-]+)") : Pattern.quote(p))
+                .map(p -> p.startsWith(":") ? (p.endsWith("*") ? "(.*)" : "([\\w-]+)") : Pattern.quote(p))
                 .collect(Collectors.joining("\\/")) + "\\/?$";
 
             String[] paramNames = Arrays.stream(path.split("\\/"))
