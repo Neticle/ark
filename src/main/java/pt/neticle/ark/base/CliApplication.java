@@ -10,6 +10,11 @@ public abstract class CliApplication extends Application
 {
     private OutputStream outputStream;
 
+    public CliApplication ()
+    {
+        super();
+    }
+
     public CliApplication (PolicyHoldingContext mainContext)
     {
         super(mainContext);

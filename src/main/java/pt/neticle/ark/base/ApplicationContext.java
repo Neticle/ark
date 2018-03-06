@@ -49,7 +49,10 @@ public class ApplicationContext extends PolicyHoldingContext
                 ArkTypeUtils.ParameterType dataType = typeData.parameters().findFirst()
                     .orElseThrow(() -> new ImplementationException("Input parameter must specify underlying data type"));
 
-                return new Input<>(context, name, dataType.getType());
+                Converter ioConverter = context.inject(Converter.class, "io", null)
+                    .orElseThrow(() -> new ImplementationException.InjectionFailed());
+
+                return new Input<>(ioConverter, context, name, dataType.getType());
             }
         ));
 
@@ -62,12 +65,15 @@ public class ApplicationContext extends PolicyHoldingContext
                 Objects.requireNonNull(typeData, "Input injections require type data");
 
                 DispatchContext context = Cast.attempt(DispatchContext.class, requestingContext)
-                        .orElseThrow(() -> new ImplementationException("Input injection requires a dispatch context"));
+                    .orElseThrow(() -> new ImplementationException("Input injection requires a dispatch context"));
 
                 ArkTypeUtils.ParameterType dataType = typeData.parameters().findFirst()
-                        .orElseThrow(() -> new ImplementationException("Input parameter must specify underlying data type"));
+                    .orElseThrow(() -> new ImplementationException("Input parameter must specify underlying data type"));
 
-                return new OptionalInput<>(context, name, dataType.getType());
+                Converter ioConverter = context.inject(Converter.class, "io", null)
+                    .orElseThrow(() -> new ImplementationException.InjectionFailed());
+
+                return new OptionalInput<>(ioConverter, context, name, dataType.getType());
             }
         ));
 
@@ -85,7 +91,10 @@ public class ApplicationContext extends PolicyHoldingContext
                 ArkTypeUtils.ParameterType dataType = typeData.parameters().findFirst()
                     .orElseThrow(() -> new ImplementationException("Input parameter must specify underlying data type"));
 
-                return new InputList<>(context, name, dataType.getType());
+                Converter ioConverter = context.inject(Converter.class, "io", null)
+                    .orElseThrow(() -> new ImplementationException.InjectionFailed());
+
+                return new InputList<>(ioConverter, context, name, dataType.getType());
             }
         ));
 
@@ -106,7 +115,10 @@ public class ApplicationContext extends PolicyHoldingContext
                 ArkTypeUtils.ParameterType valueType = typeData.parameterAt(1)
                     .orElseThrow(() -> new ImplementationException("Input parameter must specify underlying value data type"));
 
-                return new InputMap<>(context, name, keyType.getType(), valueType.getType());
+                Converter ioConverter = context.inject(Converter.class, "io", null)
+                    .orElseThrow(() -> new ImplementationException.InjectionFailed());
+
+                return new InputMap<>(ioConverter, context, name, keyType.getType(), valueType.getType());
             }
         ));
 

@@ -22,7 +22,7 @@ public class OptionalInput<T>
     private final T data;
     private final String originalTextValue;
 
-    public OptionalInput (DispatchContext context, String name, Class<T> dataType) throws InjectionException.NoSuitableInjector
+    public OptionalInput (Converter ioConverter, DispatchContext context, String name, Class<T> dataType) throws InjectionException.NoSuitableInjector
     {
         originalTextValue = context
             .parameters()
@@ -42,9 +42,7 @@ public class OptionalInput<T>
             }
             else
             {
-                data = context.inject(Converter.class, "io", null)
-                    .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
-                    .transform(originalTextValue, String.class).into(dataType)
+                data = ioConverter.transform(originalTextValue, String.class).into(dataType)
                     .orElseThrow(() -> new InputException.MalformedData("Invalid format for supplied value of " + name + " parameter"));
             }
         }

@@ -25,7 +25,7 @@ public class InputList<T>
     private final List<T> list;
     private final String name;
 
-    public InputList (DispatchContext context, String name, Class<T> itemDataType) throws InjectionException.NoSuitableInjector
+    public InputList (Converter ioConverter, DispatchContext context, String name, Class<T> itemDataType) throws InjectionException.NoSuitableInjector
     {
         this.name = name;
 
@@ -33,9 +33,7 @@ public class InputList<T>
 
         if(!itemDataType.isAssignableFrom(String.class))
         {
-            typeConverter = context.inject(Converter.class, "io", null)
-                .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
-                .getConverter(String.class, itemDataType)
+            typeConverter = ioConverter.getConverter(String.class, itemDataType)
                 .orElseThrow(() -> new ImplementationException("No converter available for String -> " + itemDataType.getName()));
         }
         else

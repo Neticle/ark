@@ -32,24 +32,20 @@ public class InputMap<K, V>
     private final Map<K,V> map;
     private final String name;
 
-    public InputMap(DispatchContext context, String name, Class<K> keyDataType, Class<V> valueDataType) throws InjectionException.NoSuitableInjector
+    public InputMap(Converter ioConverter, DispatchContext context, String name, Class<K> keyDataType, Class<V> valueDataType) throws InjectionException.NoSuitableInjector
     {
         this.map = new HashMap<>();
         this.name = name;
 
         Converter.TypeConverter<String, K> keyConverter =
             keyDataType.isAssignableFrom(String.class) ? null :
-                context.inject(Converter.class, "io", null)
-                .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
-                .getConverter(String.class, keyDataType)
+                ioConverter.getConverter(String.class, keyDataType)
                 .orElseThrow(() -> new ImplementationException("No converter available for String -> " + keyDataType.getName()));
 
         Converter.TypeConverter<String, V> valueConverter =
             keyDataType == valueDataType ? (Converter.TypeConverter<String, V>) keyConverter :
                 valueDataType.isAssignableFrom(String.class) ? null :
-                    context.inject(Converter.class, "io", null)
-                    .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
-                    .getConverter(String.class, valueDataType)
+                    ioConverter.getConverter(String.class, valueDataType)
                     .orElseThrow(() -> new ImplementationException("No converter available for String -> " + valueDataType.getName()));
 
         context.parameters()

@@ -21,7 +21,7 @@ public class Input<T>
     private final T data;
     private final String originalTextValue;
 
-    public Input (DispatchContext context, String name, Class<T> dataType) throws InjectionException.NoSuitableInjector
+    public Input (Converter ioConverter, DispatchContext context, String name, Class<T> dataType) throws InjectionException.NoSuitableInjector
     {
         originalTextValue = context
             .parameters()
@@ -35,9 +35,7 @@ public class Input<T>
         }
         else
         {
-            data = context.inject(Converter.class, "io", null)
-                .orElseThrow(() -> new ImplementationException.InjectionFailed("No IO converter available"))
-                .transform(originalTextValue, String.class).into(dataType)
+            data = ioConverter.transform(originalTextValue, String.class).into(dataType)
                 .orElseThrow(() -> new InputException.MalformedData("Invalid format for supplied value of " + name + " parameter"));
         }
 
