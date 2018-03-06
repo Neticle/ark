@@ -1,103 +1,110 @@
-// Copyright 2018 Igor Azevedo <igor.azevedo@neticle.pt>
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package pt.neticle.ark.base;
 
+import javafx.util.Builder;
 import pt.neticle.ark.data.Converter;
 import pt.neticle.ark.data.DefaultConverter;
-import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.failsafe.ErrorHandler;
 import pt.neticle.ark.failsafe.InternalErrorHandler;
 import pt.neticle.ark.failsafe.handlers.DefaultWebErrorHandler;
-import pt.neticle.ark.failsafe.handlers.FallbackErrorHandler;
 import pt.neticle.ark.http.HttpDispatchContext;
-import pt.neticle.ark.injection.InjectionPolicy;
-import pt.neticle.ark.injection.InlineInjectionPolicy;
-import pt.neticle.ark.introspection.ArkTypeUtils;
 import pt.neticle.ark.routing.DefaultRouter;
 import pt.neticle.ark.view.DefaultViewTemplateResolver;
 import pt.neticle.ark.view.ViewTemplateResolver;
 
-import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-public class DefaultMainContext extends PolicyHoldingContext
+public class DefaultMainContext extends MainContext
 {
+    private static final Supplier<Router> defaultRouterSupplier
+            = DefaultRouter::new;
+
+    private static final Supplier<Converter> defaultConverterSupplier
+            = DefaultConverter::new;
+
+    private static final Supplier<ViewTemplateResolver> defaultViewTemplateResolverSupplier
+            = DefaultViewTemplateResolver::new;
+
+    private static final Supplier<ErrorHandler<HttpDispatchContext>> defaultWebErrorHandler
+            = DefaultWebErrorHandler::new;
+
+    private static final Supplier<InternalErrorHandler<HttpDispatchContext>> defaultWebInternalErrorHandler
+            = DefaultWebErrorHandler::new;
+
     public DefaultMainContext ()
     {
-        super(null);
-
-        addPolicy(new InlineInjectionPolicy<>(
-            Router.class,
-            InjectionPolicy.ObjectLifespan.RETAINED,
-            (requestingContext, name, typeData) -> new DefaultRouter()
-        ));
-
-        addPolicy(new InlineInjectionPolicy<>(
-            Converter.class,
-            InjectionPolicy.ObjectLifespan.RETAINED,
-            (requstingContext, name, typeData) -> new DefaultConverter()
-        ));
-
-        addPolicy(new InlineInjectionPolicy<>(
-            ViewTemplateResolver.class,
-            InjectionPolicy.ObjectLifespan.RETAINED,
-            (requestingContext, name, typeData) -> new DefaultViewTemplateResolver()
-        ));
-
-        addPolicy(new InlineInjectionPolicy<>(
-            ErrorHandler.class,
-            InjectionPolicy.ObjectLifespan.DISPOSABLE,
-            (requestingContext, name, typeData) ->
-            {
-                ArkTypeUtils.ParameterType contextType = typeData.parameterAt(0)
-                    .orElseThrow(ImplementationException::new);
-
-                if(HttpDispatchContext.class.isAssignableFrom(contextType.getType()))
-                {
-                    return new DefaultWebErrorHandler();
-                }
-
-                return new FallbackErrorHandler();
-            }
-        ));
-
-        addPolicy(new InlineInjectionPolicy<>(
-            InternalErrorHandler.class,
-            InjectionPolicy.ObjectLifespan.DISPOSABLE,
-            (requestingContext, name, typeData) ->
-            {
-                ArkTypeUtils.ParameterType contextType = typeData.parameterAt(0)
-                        .orElseThrow(ImplementationException::new);
-
-                if(HttpDispatchContext.class.isAssignableFrom(contextType.getType()))
-                {
-                    return new DefaultWebErrorHandler();
-                }
-
-                return new FallbackErrorHandler();
-            }
-        ));
+        super(defaultRouterSupplier, defaultConverterSupplier, defaultViewTemplateResolverSupplier,
+                defaultWebErrorHandler, defaultWebInternalErrorHandler);
     }
 
-    @Override
-    public Optional<InjectionPolicy> getPolicyFor (Class desiredType, Context requestingContext)
+    protected DefaultMainContext (Supplier<Router> routerSupplier, Supplier<Converter> converterSupplier,
+        Supplier<ViewTemplateResolver> viewTemplateResolverSupplier, Supplier<ErrorHandler<HttpDispatchContext>> webErrorHandler,
+        Supplier<InternalErrorHandler<HttpDispatchContext>> webInternalErrorHandler)
     {
-        if(requestingContext.parent == this)
+        super(routerSupplier, converterSupplier, viewTemplateResolverSupplier, webErrorHandler, webInternalErrorHandler);
+    }
+
+    public static class Builder
+    {
+        private Supplier<Router> routerSupplier = defaultRouterSupplier;
+        private Supplier<Converter> converterSupplier = defaultConverterSupplier;
+        private Supplier<ViewTemplateResolver> viewTemplateResolverSupplier = defaultViewTemplateResolverSupplier;
+        private Supplier<ErrorHandler<HttpDispatchContext>> webErrorHandler = defaultWebErrorHandler;
+        private Supplier<InternalErrorHandler<HttpDispatchContext>> webInternalErrorHandler = defaultWebInternalErrorHandler;
+
+        private Consumer<DefaultMainContext> customInitializator = null;
+
+        private Builder()
         {
-            return super.getPolicyFor(desiredType, requestingContext);
         }
 
-        return Optional.empty();
+        public DefaultMainContext build ()
+        {
+            DefaultMainContext mc = new DefaultMainContext(routerSupplier, converterSupplier, viewTemplateResolverSupplier,
+                webErrorHandler, webInternalErrorHandler);
+
+            if(customInitializator != null)
+            {
+                customInitializator.accept(mc);
+            }
+
+            return mc;
+        }
+
+        public Builder withRouterSupplier (Supplier<Router> routerSupplier)
+        {
+            this.routerSupplier = routerSupplier;
+            return this;
+        }
+
+        public Builder withConverterSupplier (Supplier<Converter> converterSupplier)
+        {
+            this.converterSupplier = converterSupplier;
+            return this;
+        }
+
+        public Builder withViewTemplateResolverSupplier (Supplier<ViewTemplateResolver> viewTemplateResolverSupplier)
+        {
+            this.viewTemplateResolverSupplier = viewTemplateResolverSupplier;
+            return this;
+        }
+
+        public Builder withWebErrorHandlers (Supplier<ErrorHandler<HttpDispatchContext>> webErrorHandler, Supplier<InternalErrorHandler<HttpDispatchContext>> webInternalErrorHandler)
+        {
+            this.webErrorHandler = webErrorHandler;
+            this.webInternalErrorHandler = webInternalErrorHandler;
+            return this;
+        }
+
+        public Builder withCustomInitialization (Consumer<DefaultMainContext> customInitializator)
+        {
+            this.customInitializator = customInitializator;
+            return this;
+        }
+    }
+
+    public static final Builder builder ()
+    {
+        return new Builder();
     }
 }

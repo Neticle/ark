@@ -21,7 +21,6 @@ import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.exceptions.ArkRuntimeException;
 import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.exceptions.InputException;
-import pt.neticle.ark.failsafe.ErrorHandler;
 import pt.neticle.ark.introspection.ArkReflectionUtils;
 import pt.neticle.ark.introspection.ArkTypeUtils;
 import pt.neticle.ark.introspection.ClassFinder;
