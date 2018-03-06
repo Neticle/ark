@@ -15,6 +15,7 @@
 package pt.neticle.ark.base;
 
 import pt.neticle.ark.annotations.Controller;
+import pt.neticle.ark.failsafe.ErrorHandlingController;
 
 /**
  * A controller handler object holds descriptive data about it's controller.
@@ -79,5 +80,15 @@ public class ControllerHandler
     public Object getControllerInstance ()
     {
         return controller;
+    }
+
+    public boolean hasOwnErrorHandlers ()
+    {
+        return controller instanceof ErrorHandlingController;
+    }
+
+    public ErrorHandlingController getControllerInstanceAsErrorHandling ()
+    {
+        return hasOwnErrorHandlers() ? (ErrorHandlingController)controller : null;
     }
 }

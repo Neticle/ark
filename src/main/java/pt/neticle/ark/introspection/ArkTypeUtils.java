@@ -15,6 +15,7 @@
 package pt.neticle.ark.introspection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -73,6 +74,13 @@ public class ArkTypeUtils
     public static class ParametersList
     {
         private final List<ParameterType> parameters;
+
+        public ParametersList (Class<?>... parameterTypes)
+        {
+            this.parameters = Arrays.stream(parameterTypes)
+                    .map((param) -> new ParameterType(param))
+                    .collect(Collectors.toList());
+        }
 
         public ParametersList (String signature)
         {
@@ -152,6 +160,17 @@ public class ArkTypeUtils
             else
             {
                 this.typeName = signature;
+            }
+        }
+
+        public ParameterType (Class<?> type, Class<?>... genericTypeArguments)
+        {
+            this.typeName = type.getTypeName();
+            this.type = type;
+
+            if(genericTypeArguments.length > 0)
+            {
+                this.genericTypes = new ParametersList(genericTypeArguments);
             }
         }
 

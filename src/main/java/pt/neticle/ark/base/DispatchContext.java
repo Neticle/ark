@@ -60,8 +60,6 @@ public abstract class DispatchContext extends Context
 
     public abstract void handleActionOutput (Output output);
 
-    public abstract boolean handleHaltedAction (ActionHandler action, Throwable cause);
-
     /**
      * A helper class that groups together a key and a value, forming a parameter.
      *

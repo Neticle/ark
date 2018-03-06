@@ -18,8 +18,10 @@ import pt.neticle.ark.annotations.Action;
 import pt.neticle.ark.annotations.Controller;
 import pt.neticle.ark.annotations.TemplateObject;
 import pt.neticle.ark.data.output.Output;
+import pt.neticle.ark.exceptions.ArkRuntimeException;
 import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.exceptions.InputException;
+import pt.neticle.ark.failsafe.ErrorHandler;
 import pt.neticle.ark.introspection.ArkReflectionUtils;
 import pt.neticle.ark.introspection.ArkTypeUtils;
 import pt.neticle.ark.introspection.ClassFinder;
@@ -134,58 +136,134 @@ public abstract class Application
         context().getRouter().register(actionHandler);
     }
 
-    protected final void dispatch (DispatchContext context)
+    protected final <T extends DispatchContext> void dispatch (T dcontext, Class<T> contextType)
     {
-        ActionHandler action = context().getRouter().route(context);
+        ActionHandler action = context().getRouter().route(dcontext);
+        Output<?> output = null;
 
         if(action == null)
         {
-            context.handleHaltedAction(null, new InputException.PathNotFound());
-            return;
+            output = context().getErrorHandlerFor(contextType).handleError(dcontext, null, new InputException.PathNotFound());
         }
-
-        Output<?> output = null;
-
-        try {
-            output = action.dispatch(context);
-        } catch(Throwable e)
+        else
         {
-            if(!context.handleHaltedAction(action, e))
+            try
             {
-                new ImplementationException("Unhandled expection reached application dispatcher", e)
-                .printStackTrace();
-                return;
+                output = action.dispatch(dcontext);
+            }
+            catch(InputException e)
+            {
+                output = handleActionHaltingError(action, e, dcontext, contextType);
+            }
+            catch(Throwable e)
+            {
+                output = handleActionHaltingInternalError(action, e, dcontext, contextType);
             }
         }
 
-        if(action.hasOutputReturnType() && output != null)
+        if(output != null)
         {
-            output.ready();
-
-            if(output instanceof View)
+            int attempts = 0;
+            while(output instanceof View)
             {
-                Template tmpl = context().getViewTemplateResolver().resolve(context.getClass(), action, (View) output);
+                Template tmpl = context().getViewTemplateResolver().resolve(dcontext.getClass(), action, (View) output);
 
-                if(tmpl == null)
+                try
                 {
-                    ImplementationException e = new ImplementationException("Couldn't resolve view template for " +
-                        action.getControllerHandler().getControllerClass().getName() + "/" + action.getMethodName());
-
-                    if(!context.handleHaltedAction(action, e))
+                    if(tmpl == null)
                     {
-                        new ImplementationException("Unhandled expection reached application dispatcher", e)
-                                .printStackTrace();
+                        throw new ImplementationException("Couldn't resolve view template for " +
+                            action.getControllerHandler().getControllerClass().getName() + "/" + action.getMethodName());
                     }
 
-                    return;
+                    output = tmpl.render(dcontext, action, (View) output);
+                }
+                catch(InputException e)
+                {
+                    output = handleActionHaltingError(action, e, dcontext, contextType);
+                }
+                catch(Throwable e)
+                {
+                    output = handleActionHaltingInternalError(action, e, dcontext, contextType);
                 }
 
-                output = tmpl.render(context, action, (View) output);
-                output.ready();
+                attempts++;
+
+                if(attempts > 8)
+                {
+                    output = context().getFallbackInternalErrorHandler()
+                        .handleInternalError(dcontext, action, new ImplementationException("Unable to render error view."));
+
+                    break;
+                }
             }
 
-            context.handleActionOutput(output);
+            if(output != null)
+            {
+                output.ready();
+
+                dcontext.handleActionOutput(output);
+            }
         }
+    }
+
+    private <T extends DispatchContext> Output<?> handleActionHaltingError
+        (ActionHandler action, ArkRuntimeException e, T dcontext, Class<T> contextType)
+    {
+        Output<?> output = null;
+
+        if(action.getControllerHandler().hasOwnErrorHandlers() &&
+                action.getControllerHandler().getControllerInstanceAsErrorHandling().getErrorHandlerFor(contextType) != null)
+        {
+            output = action.getControllerHandler()
+                    .getControllerInstanceAsErrorHandling()
+                    .getErrorHandlerFor(contextType)
+                    .handleError(dcontext, action, e);
+        }
+
+        if(output == null)
+        {
+            output = context().getErrorHandlerFor(contextType)
+                    .handleError(dcontext, action, e);
+        }
+
+        if(output == null)
+        {
+            throw new ImplementationException("Unhandled error reached application dispatcher", e);
+        }
+
+        return output;
+    }
+
+    private <T extends DispatchContext> Output<?> handleActionHaltingInternalError
+        (ActionHandler action, Throwable e, T dcontext, Class<T> contextType)
+    {
+        Output<?> output = null;
+
+        ArkRuntimeException rte = (e instanceof ArkRuntimeException) ?
+            (ArkRuntimeException) e : new ImplementationException("Unexpected exception", e);
+
+        if(action.getControllerHandler().hasOwnErrorHandlers() &&
+            action.getControllerHandler().getControllerInstanceAsErrorHandling().getInternalErrorHandlerFor(contextType) != null)
+        {
+            output = action.getControllerHandler()
+                .getControllerInstanceAsErrorHandling()
+                .getInternalErrorHandlerFor(contextType)
+                .handleInternalError(dcontext, action, rte);
+        }
+
+        if(output == null)
+        {
+            output = context().getInternalErrorHandlerFor(contextType)
+                .handleInternalError(dcontext, action, rte);
+        }
+
+        if(output == null)
+        {
+            throw new ImplementationException("Unhandled internal error reached application dispatcher", e);
+        }
+
+        return output;
     }
 
     protected final void dispatchWithoutErrorHandling (DispatchContext context) throws Throwable

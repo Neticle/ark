@@ -83,31 +83,4 @@ public class HttpDispatchContext extends DispatchContext
             }
         }
     }
-
-    @Override
-    public boolean handleHaltedAction (ActionHandler action, Throwable cause)
-    {
-        // TODO
-        printException(response, cause);
-        return true;
-    }
-
-    private final void printException (HttpResponse response, Throwable e)
-    {
-        response.writeString("Exception: " + e.getClass().getName() + " - " + e.getMessage() + "\n");
-        response.writeString
-        (
-            Arrays.stream(e.getStackTrace())
-                .map(st -> st.toString())
-                .collect(Collectors.joining("\n"))
-        );
-
-        response.writeString("\n");
-
-        if(e.getCause() != null)
-        {
-            response.writeString("\nCaused by ");
-            printException(response, e.getCause());
-        }
-    }
 }

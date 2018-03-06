@@ -65,6 +65,6 @@ public class WebApplication extends Application
 
     public final void dispatch (HttpRequest request, HttpResponse response)
     {
-        dispatch(new HttpDispatchContext(context(), request, response));
+        dispatch(new HttpDispatchContext(context(), request, response), HttpDispatchContext.class);
     }
 }

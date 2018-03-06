@@ -55,12 +55,12 @@ public abstract class CliApplication extends Application
 
     public final void dispatchWithPath (String path, String... arguments)
     {
-        dispatch(prepareContext(path, arguments));
+        dispatch(prepareContext(path, arguments), ConsoleDispatchContext.class);
     }
 
     public final void dispatch (String path, List<DispatchContext.DispatchParameter> parameters)
     {
-        dispatch(prepareContext(path, parameters));
+        dispatch(prepareContext(path, parameters), ConsoleDispatchContext.class);
     }
 
     protected final ConsoleDispatchContext prepareContext (String path, String... arguments)

@@ -21,12 +21,17 @@ import pt.neticle.ark.data.input.InputMap;
 import pt.neticle.ark.data.input.OptionalInput;
 import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.exceptions.InjectionException;
+import pt.neticle.ark.failsafe.ErrorHandler;
+import pt.neticle.ark.failsafe.InternalErrorHandler;
+import pt.neticle.ark.http.HttpDispatchContext;
 import pt.neticle.ark.injection.InjectionPolicy;
 import pt.neticle.ark.injection.InlineInjectionPolicy;
 import pt.neticle.ark.introspection.ArkTypeUtils;
 import pt.neticle.ark.runtime.Cast;
 import pt.neticle.ark.view.ViewTemplateResolver;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -36,10 +41,17 @@ public class ApplicationContext extends PolicyHoldingContext
     private ReverseRouter reverseRouter;
     private Converter ioConverter;
     private ViewTemplateResolver viewTemplateResolver;
+    private ErrorHandler<DispatchContext> fallbackErrorHandler;
+    private InternalErrorHandler<DispatchContext> fallbackInternalErrorHandler;
+    private final Map<Class<? extends DispatchContext>, ErrorHandler<? extends DispatchContext>> errorHandlers;
+    private final Map<Class<? extends DispatchContext>, InternalErrorHandler<? extends DispatchContext>> internalErrorHandlers;
 
     public ApplicationContext (Context parent)
     {
         super(parent);
+
+        errorHandlers = new HashMap<>();
+        internalErrorHandlers = new HashMap<>();
 
         try
         {
@@ -168,6 +180,26 @@ public class ApplicationContext extends PolicyHoldingContext
 
         viewTemplateResolver = inject(ViewTemplateResolver.class, null, null)
             .orElseThrow(() -> new ImplementationException("Unable to obtain view template resolver instance"));
+
+        fallbackErrorHandler = inject(ErrorHandler.class, null, new ArkTypeUtils.ParameterType(ErrorHandler.class, DispatchContext.class))
+            .orElseThrow(() -> new ImplementationException("Unable to obtain fallback error handler instance"));
+
+        fallbackInternalErrorHandler = inject(InternalErrorHandler.class, null, new ArkTypeUtils.ParameterType(InternalErrorHandler.class, DispatchContext.class))
+                .orElseThrow(() -> new ImplementationException("Unable to obtain fallback error handler instance"));
+
+        errorHandlers.put
+        (
+            HttpDispatchContext.class,
+            inject(ErrorHandler.class, null, new ArkTypeUtils.ParameterType(ErrorHandler.class, HttpDispatchContext.class))
+                    .orElseThrow(() -> new ImplementationException("Unable to obtain http error handler instance"))
+        );
+
+        internalErrorHandlers.put
+        (
+            HttpDispatchContext.class,
+            inject(InternalErrorHandler.class, null, new ArkTypeUtils.ParameterType(InternalErrorHandler.class, HttpDispatchContext.class))
+                    .orElseThrow(() -> new ImplementationException("Unable to obtain http internal error handler instance"))
+        );
     }
 
     protected <T> InjectionPolicy singletonPolicy (Class<T> type, Supplier<T> supplier)
@@ -193,5 +225,25 @@ public class ApplicationContext extends PolicyHoldingContext
     public ViewTemplateResolver getViewTemplateResolver ()
     {
         return viewTemplateResolver;
+    }
+
+    public ErrorHandler<DispatchContext> getFallbackErrorHandler ()
+    {
+        return fallbackErrorHandler;
+    }
+
+    public InternalErrorHandler<DispatchContext> getFallbackInternalErrorHandler ()
+    {
+        return fallbackInternalErrorHandler;
+    }
+
+    public <T extends DispatchContext> ErrorHandler<T> getErrorHandlerFor (Class<T> contextType)
+    {
+        return (ErrorHandler<T>) errorHandlers.getOrDefault(contextType, fallbackErrorHandler);
+    }
+
+    public <T extends DispatchContext> InternalErrorHandler<T> getInternalErrorHandlerFor (Class<T> contextType)
+    {
+        return (InternalErrorHandler<T>) internalErrorHandlers.getOrDefault(contextType, fallbackInternalErrorHandler);
     }
 }
