@@ -23,11 +23,24 @@
             <artifactId>guava</artifactId>
             <version>21.0</version>
         </dependency>
+
+        <!-- Compile time / optional dependencies -->
+        <dependency>
+            <groupId>pt.neticle.ark</groupId>
+            <artifactId>ark-templating</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>4.1.9.Final</version>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
+
+        <!-- Unit testing dependencies -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

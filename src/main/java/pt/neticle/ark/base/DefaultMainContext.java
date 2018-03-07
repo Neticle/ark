@@ -1,6 +1,5 @@
 package pt.neticle.ark.base;
 
-import javafx.util.Builder;
 import pt.neticle.ark.data.Converter;
 import pt.neticle.ark.data.DefaultConverter;
 import pt.neticle.ark.failsafe.ErrorHandler;
@@ -10,6 +9,7 @@ import pt.neticle.ark.http.HttpDispatchContext;
 import pt.neticle.ark.routing.DefaultRouter;
 import pt.neticle.ark.view.DefaultViewTemplateResolver;
 import pt.neticle.ark.view.ViewTemplateResolver;
+import pt.neticle.ark.view.arktemplating.ArkTemplatingResolver;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -22,8 +22,19 @@ public class DefaultMainContext extends MainContext
     private static final Supplier<Converter> defaultConverterSupplier
             = DefaultConverter::new;
 
-    private static final Supplier<ViewTemplateResolver> defaultViewTemplateResolverSupplier
-            = DefaultViewTemplateResolver::new;
+    private static final Supplier<ViewTemplateResolver> defaultViewTemplateResolverSupplier = () ->
+    {
+        Class<?> te = null;
+
+        try
+        {
+            te = Class.forName("pt.neticle.ark.templating.TemplatingEngine");
+        } catch(ClassNotFoundException e) { }
+
+        return te == null ?
+            new DefaultViewTemplateResolver() :
+            new ArkTemplatingResolver();
+    };
 
     private static final Supplier<ErrorHandler<HttpDispatchContext>> defaultWebErrorHandler
             = DefaultWebErrorHandler::new;
