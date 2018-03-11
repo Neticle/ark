@@ -6,6 +6,7 @@ import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.output.ContentOutput;
 import pt.neticle.ark.data.output.Html;
 import pt.neticle.ark.exceptions.ImplementationException;
+import pt.neticle.ark.filesystem.ArkFs;
 import pt.neticle.ark.templating.TemplatingEngine;
 import pt.neticle.ark.templating.renderer.MainScope;
 import pt.neticle.ark.templating.structure.ReadableElement;
@@ -16,8 +17,6 @@ import pt.neticle.ark.view.arktemplating.functions.RouteFn;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,23 +29,10 @@ public class ArkTemplatingResolver extends DefaultViewTemplateResolver
     {
         TemplatingEngine.Initializer init = new TemplatingEngine.Initializer();
 
-        Path templatesFolder = null;
-
-        try
+        Path bundledTemplatesFolder = ArkFs.resolveBundled(Paths.get("templates"));
+        if(bundledTemplatesFolder != null && Files.exists(bundledTemplatesFolder) && Files.isDirectory(bundledTemplatesFolder))
         {
-            URL url = ArkTemplatingResolver.class.getClassLoader().getResource("templates");
-
-            if(url != null)
-            {
-                templatesFolder = Paths.get(url.toURI());
-            }
-        } catch(URISyntaxException e)
-        {
-        }
-
-        if(templatesFolder != null && Files.exists(templatesFolder))
-        {
-            init.withSearchDirectory(templatesFolder);
+            init.withSearchDirectory(bundledTemplatesFolder);
         }
 
         try
