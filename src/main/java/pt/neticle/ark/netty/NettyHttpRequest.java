@@ -18,6 +18,8 @@ import io.netty.handler.codec.http.*;
 import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.http.HttpRequest;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.HttpCookie;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -102,9 +104,9 @@ public class NettyHttpRequest implements HttpRequest
     }
 
     @Override
-    public ByteBuffer getBody ()
+    public InputStream getBody ()
     {
-        return underlyingObject.content().nioBuffer();
+        return new ByteArrayInputStream(underlyingObject.content().nioBuffer().array());
     }
 
     @Override

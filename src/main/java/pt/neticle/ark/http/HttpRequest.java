@@ -14,6 +14,7 @@
 
 package pt.neticle.ark.http;
 
+import java.io.InputStream;
 import java.net.HttpCookie;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -46,7 +47,7 @@ public interface HttpRequest extends HttpMessage
 
     String getUri ();
 
-    ByteBuffer getBody ();
+    InputStream getBody();
 
     String getPath ();
 

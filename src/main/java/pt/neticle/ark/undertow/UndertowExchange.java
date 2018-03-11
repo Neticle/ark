@@ -6,6 +6,7 @@ import pt.neticle.ark.data.ContentType;
 import pt.neticle.ark.http.HttpRequest;
 import pt.neticle.ark.http.HttpResponse;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpCookie;
 import java.nio.ByteBuffer;
@@ -71,9 +72,9 @@ public class UndertowExchange implements HttpRequest, HttpResponse
     }
 
     @Override
-    public ByteBuffer getBody ()
+    public InputStream getBody ()
     {
-        return null;
+        return exchange.getInputStream();
     }
 
     @Override
