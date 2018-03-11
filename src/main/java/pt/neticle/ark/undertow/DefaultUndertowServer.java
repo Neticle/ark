@@ -19,7 +19,7 @@ public class DefaultUndertowServer
         this.inboundPort = inboundPort;
 
         server = Undertow.builder()
-            .addHttpListener(inboundPort, "localhost")
+            .addHttpListener(inboundPort, "0.0.0.0")
             .setHandler(handler)
             .build();
     }
