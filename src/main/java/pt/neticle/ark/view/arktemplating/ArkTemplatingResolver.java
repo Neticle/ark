@@ -27,7 +27,7 @@ public class ArkTemplatingResolver extends DefaultViewTemplateResolver
 
     public ArkTemplatingResolver ()
     {
-        TemplatingEngine.Initializer init = new TemplatingEngine.Initializer();
+        TemplatingEngine.Initializer init = TemplatingEngine.initializer();
 
         Path bundledTemplatesFolder = ArkFs.resolveBundled(Paths.get("templates"));
         if(bundledTemplatesFolder != null && Files.exists(bundledTemplatesFolder) && Files.isDirectory(bundledTemplatesFolder))
