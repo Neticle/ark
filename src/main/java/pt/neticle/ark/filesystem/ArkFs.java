@@ -92,12 +92,11 @@ public class ArkFs
             }
             else
             {
-                Log.info(() -> "Determined bundled resources are located at " + archiveBaseUri.toString());
-
                 archiveFileSystem = null;
             }
 
             archiveBaseUri = resolved;
+            Log.info(() -> "Determined bundled resources are located at " + archiveBaseUri.toString());
         }
 
         return archiveFileSystem == null ? Paths.get(archiveBaseUri).resolve(path.toString()) :
