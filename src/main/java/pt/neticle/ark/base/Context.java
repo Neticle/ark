@@ -21,6 +21,7 @@ import pt.neticle.ark.introspection.ArkTypeUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 /**
  * The context serves the purpose of encapsulating various usages of the application.
@@ -36,6 +37,8 @@ import java.util.Optional;
  */
 public abstract class Context
 {
+    private static final Logger Log = Logger.getLogger(Context.class.getName());
+
     /**
      * The parent context
      */
@@ -54,6 +57,8 @@ public abstract class Context
      */
     public Context (Context parent)
     {
+        Log.fine(() -> "Creating context: " + this.getClass().getName() + ", parent: " + (parent != null ? parent.getClass().getName() : null));
+
         this.parent = parent;
         this.savedInstances = new HashMap<>();
     }
@@ -70,6 +75,7 @@ public abstract class Context
 
     public Optional<InjectionPolicy> getPolicyFor (Class desiredType, Context requestingContext)
     {
+        Log.fine(() -> "Context " + requestingContext.getClass().getName() + " requesting injection policy for " + desiredType.getName());
         return parent != null ? parent.getPolicyFor(desiredType, requestingContext) : Optional.empty();
     }
 

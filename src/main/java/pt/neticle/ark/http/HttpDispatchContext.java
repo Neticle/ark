@@ -14,7 +14,6 @@
 
 package pt.neticle.ark.http;
 
-import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.base.Context;
 import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.ArkDataUtils;
@@ -22,6 +21,7 @@ import pt.neticle.ark.data.output.*;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
  */
 public class HttpDispatchContext extends DispatchContext
 {
+    private static final Logger Log = Logger.getLogger(HttpDispatchContext.class.getName());
+
     private final HttpRequest request;
     private final HttpResponse response;
 
@@ -65,6 +67,8 @@ public class HttpDispatchContext extends DispatchContext
     @Override
     public void handleActionOutput (Output output)
     {
+        Log.fine(() -> "Handling action output: " + output.getClass().getName());
+
         if(output instanceof ContentOutput)
         {
             ((ContentOutput<?>) output).contentType()
@@ -80,6 +84,8 @@ public class HttpDispatchContext extends DispatchContext
             } catch(IOException e)
             {
                 response.setStatusCode(HttpResponse.Status.INTERNAL_SERVER_ERROR);
+
+                Log.warning("Unable to write response: " + e.toString());
             }
         }
     }

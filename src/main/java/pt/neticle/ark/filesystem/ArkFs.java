@@ -1,3 +1,17 @@
+// Copyright 2018 Igor Azevedo <igor.azevedo@neticle.pt>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package pt.neticle.ark.filesystem;
 
 import pt.neticle.ark.exceptions.ExternalConditionException;
@@ -12,15 +26,18 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.logging.Logger;
 
 public class ArkFs
 {
+    private static final Logger Log = Logger.getLogger(ArkFs.class.getName());
+
     private static FileSystem archiveFileSystem;
     private static URI archiveBaseUri;
     private static Path workingDir;
 
     /**
-     * Resolves a usable path to a resource bundled with the application's JAT/WAR archive
+     * Resolves a usable path to a resource bundled with the application's JAR/WAR archive
      *
      * @param path The path, relative to the root of the archive
      * @return
@@ -29,6 +46,8 @@ public class ArkFs
     {
         if(archiveBaseUri == null)
         {
+            Log.fine(() -> "Attempting to resolve archive base path");
+
             URL url = ClassLoader.getSystemResource(".");
 
             if(url == null)
@@ -61,6 +80,8 @@ public class ArkFs
 
             if(url.toString().startsWith("jar") || url.toString().startsWith("war"))
             {
+                Log.info(() -> "Determined bundled resources are located inside jar/war archive");
+
                 try
                 {
                     archiveFileSystem = FileSystems.newFileSystem(resolved, Collections.emptyMap());
@@ -71,6 +92,8 @@ public class ArkFs
             }
             else
             {
+                Log.info(() -> "Determined bundled resources are located at " + archiveBaseUri.toString());
+
                 archiveFileSystem = null;
             }
 

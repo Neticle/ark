@@ -17,6 +17,8 @@ package pt.neticle.ark.base;
 import pt.neticle.ark.annotations.Controller;
 import pt.neticle.ark.failsafe.ErrorHandlingController;
 
+import java.util.logging.Logger;
+
 /**
  * A controller handler object holds descriptive data about it's controller.
  *
@@ -24,6 +26,8 @@ import pt.neticle.ark.failsafe.ErrorHandlingController;
  */
 public class ControllerHandler
 {
+    private static final Logger Log = Logger.getLogger(ControllerHandler.class.getName());
+
     /**
      * The owning application
      */
@@ -60,11 +64,15 @@ public class ControllerHandler
      */
     protected ControllerHandler (Application parent, Class<?> controllerClass, Object controller, Controller annotation)
     {
+        Log.fine(() -> "Creating controller handler for " + controllerClass.getName());
+
         this.parent = parent;
         this.controllerClass = controllerClass;
         this.controller = controller;
         this.annotation = annotation;
         this.path = annotation.path();
+
+        Log.info(() -> "Controller handler for " + controllerClass.getName() + " created. Error handling: " + hasOwnErrorHandlers() + ", Path: " + path);
     }
 
     public String getPath ()

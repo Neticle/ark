@@ -29,6 +29,7 @@ import pt.neticle.ark.view.View;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * The base Ark Application class contains all functionality necessary to run and serve requests/commands
@@ -42,6 +43,8 @@ import java.util.*;
  */
 public abstract class Application
 {
+    private static final Logger Log = Logger.getLogger(Application.class.getName());
+
     private final Context mainContext;
     private final ApplicationContext context;
     private final List<ApplicationComponent> components;
@@ -53,6 +56,8 @@ public abstract class Application
 
     public Application (PolicyHoldingContext mainContext)
     {
+        Log.info("Creating application instance");
+
         this.mainContext = mainContext;
         this.context = new ApplicationContext(this.mainContext);
         this.components = new ArrayList<>();
@@ -78,20 +83,28 @@ public abstract class Application
     protected void component (ApplicationComponent component)
     {
         components.add(component);
+
+        Log.info("Registered application component: " + component.getClass().getName());
     }
 
     protected void initialize ()
     {
         components.forEach((c) -> c.initialize(context));
+
+        Log.info("Initialized registered application components");
     }
 
     protected void activate ()
     {
         components.forEach(ApplicationComponent::activate);
+
+        Log.info("Activated registered application components");
     }
 
     private void visitController (Class<?> controllerClass)
     {
+        Log.fine("Visiting controller class: " + controllerClass.getName());
+
         Object controller;
 
         if(Application.class.isAssignableFrom(controllerClass))
@@ -122,6 +135,8 @@ public abstract class Application
 
     private void visitTemplateObject (Class<?> tClass)
     {
+        Log.fine("Visiting template object class: " + tClass.getName());
+
         if(!Template.class.isAssignableFrom(tClass))
         {
             return;
@@ -133,16 +148,21 @@ public abstract class Application
     private void registerAction (ActionHandler actionHandler)
     {
         context().getRouter().register(actionHandler);
+
+        Log.info("Registered action " + actionHandler.getControllerHandler().getControllerClass().getName() + ":" + actionHandler.getMethodName());
     }
 
     protected final <T extends DispatchContext> void dispatch (T dcontext, Class<T> contextType)
     {
+        Log.info(() -> "Application dispatch " + dcontext.getPath());
+
         ActionHandler action = context().getRouter().route(dcontext);
         Output<?> output = null;
 
         if(action == null)
         {
             output = context().getErrorHandlerFor(contextType).handleError(dcontext, null, new InputException.PathNotFound());
+            Log.info("Application router couldn't find action handler for " + dcontext.getPath());
         }
         else
         {
@@ -209,6 +229,8 @@ public abstract class Application
     private <T extends DispatchContext> Output<?> handleActionHaltingError
         (ActionHandler action, ArkRuntimeException e, T dcontext, Class<T> contextType)
     {
+        Log.info(() -> "Action-halting error reached dispatch logic: " + e.toString());
+
         Output<?> output = null;
 
         if(action.getControllerHandler().hasOwnErrorHandlers() &&
@@ -237,6 +259,8 @@ public abstract class Application
     private <T extends DispatchContext> Output<?> handleActionHaltingInternalError
         (ActionHandler action, Throwable e, T dcontext, Class<T> contextType)
     {
+        Log.warning("Action-halting internal error reached dispatch logic: " + e.toString());
+
         Output<?> output = null;
 
         ArkRuntimeException rte = (e instanceof ArkRuntimeException) ?

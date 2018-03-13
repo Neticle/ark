@@ -19,9 +19,12 @@ import pt.neticle.ark.injection.InjectionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 public class PolicyHoldingContext extends Context
 {
+    private static final Logger Log = Logger.getLogger(PolicyHoldingContext.class.getName());
+
     private final Map<Class, InjectionPolicy> policies;
 
     public PolicyHoldingContext (Context parent)
@@ -43,6 +46,7 @@ public class PolicyHoldingContext extends Context
 
         if(policy != null && policy.matchesRequiredType(desiredType))
         {
+            Log.fine(() -> "Providing injector for " + desiredType.getName() + " to context of type " + requestingContext.getClass().getName());
             return Optional.of(policy);
         }
 
@@ -51,6 +55,7 @@ public class PolicyHoldingContext extends Context
             return parent.getPolicyFor(desiredType, requestingContext);
         }
 
+        Log.fine(() -> "Unable to provide injector for " + desiredType.getName() + " to context of type " + requestingContext.getClass().getName());
         return Optional.empty();
     }
 }

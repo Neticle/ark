@@ -31,15 +31,20 @@ import pt.neticle.ark.view.ViewTemplateResolver;
 
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 public class MainContext extends PolicyHoldingContext
 {
+    private static final Logger Log = Logger.getLogger(MainContext.class.getName());
+
     protected MainContext (Supplier<Router> routerSupplier, Supplier<Converter> converterSupplier,
                            Supplier<ViewTemplateResolver> viewTemplateResolverSupplier,
                            Supplier<ErrorHandler<HttpDispatchContext>> webErrorHandler,
                            Supplier<InternalErrorHandler<HttpDispatchContext>> webInternalErrorHandler)
     {
         super(null);
+
+        Log.fine(() -> "Creating main context");
 
         addPolicy(new InlineInjectionPolicy<>(
             Router.class,
@@ -92,6 +97,8 @@ public class MainContext extends PolicyHoldingContext
                 return new FallbackErrorHandler();
             }
         ));
+
+        Log.info(() -> "Main context has been created");
     }
 
     @Override

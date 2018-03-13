@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * An action handler object handles both descriptive data and invokation of controller actions.
@@ -33,6 +34,8 @@ import java.util.List;
  */
 public class ActionHandler
 {
+    private static final Logger Log = Logger.getLogger(ActionHandler.class.getName());
+
     /**
      * The owning controller's handler
      */
@@ -72,6 +75,8 @@ public class ActionHandler
      */
     protected ActionHandler (ControllerHandler parent, Method actionMethod)
     {
+        Log.fine(() -> "Creating action handler for " + parent.getControllerInstance().getClass().getName() + " " + actionMethod.toGenericString());
+
         controllerHandler = parent;
         methodName = actionMethod.getName();
         method = actionMethod;
@@ -121,9 +126,12 @@ public class ActionHandler
         int i = 0;
         for(Parameter reflParam : method.getParameters())
         {
+            Log.fine("Added action parameter " + reflParam.getName() + ": " + parameterTypes.get(i).toString());
             parameters.add(new Pair<>(reflParam, parameterTypes.get(i)));
             i++;
         }
+
+        Log.info("Action handler for " + controllerHandler.getControllerClass().getName() + ":" + methodName + " created.");
     }
 
     /**
@@ -133,6 +141,8 @@ public class ActionHandler
      */
     protected Output<?> dispatch (DispatchContext context) throws Throwable
     {
+        Log.fine("Entered action handler dispatch logic");
+
         // The array that will carry the method arguments
         Object[] parameterValues = new Object[parameters.size()];
 

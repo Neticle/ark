@@ -34,9 +34,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 public class ApplicationContext extends PolicyHoldingContext
 {
+    private static final Logger Log = Logger.getLogger(ApplicationContext.class.getName());
+
     private Router router;
     private ReverseRouter reverseRouter;
     private Converter ioConverter;
@@ -49,6 +52,8 @@ public class ApplicationContext extends PolicyHoldingContext
     public ApplicationContext (Context parent)
     {
         super(parent);
+
+        Log.fine(() -> "Creating application context");
 
         errorHandlers = new HashMap<>();
         internalErrorHandlers = new HashMap<>();
@@ -163,6 +168,8 @@ public class ApplicationContext extends PolicyHoldingContext
         ));
 
         addPolicy(singletonPolicy(ReverseRouter.class, this::getReverseRouter));
+
+        Log.info(() -> "Application context has been created");
     }
 
     private void initialize () throws InjectionException.NoSuitableInjector
