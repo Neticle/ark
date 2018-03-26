@@ -21,6 +21,7 @@ import pt.neticle.ark.data.Pair;
 import pt.neticle.ark.exceptions.ImplementationException;
 
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -31,6 +32,8 @@ import java.util.stream.Collectors;
  */
 public class DefaultRouter implements Router, ReverseRouter
 {
+    private static final Logger Log = Logger.getLogger(DefaultRouter.class.getName());
+
     /**
      * Contains a tree of all routes
      *
@@ -95,6 +98,9 @@ public class DefaultRouter implements Router, ReverseRouter
         controllerActions.add(actionRoute);
         actionsToRoutes.put(actionHandler, actionRoute);
         reverseLookupTable.put(actionHandler.getControllerHandler().getControllerClass(), actionHandler.getMethodName(), actionHandler);
+
+        Log.info("Registered route " + actionRoute.pattern.toString() + " to " +
+            actionHandler.getControllerHandler().getControllerClass().getName() + " " + actionHandler.getMethodName());
     }
 
     @Override
@@ -284,7 +290,7 @@ public class DefaultRouter implements Router, ReverseRouter
         {
             String pattern = "^\\/" + Arrays.stream(path.split("\\/"))
                 .filter(p -> p.length() > 0)
-                .map(p -> p.startsWith(":") ? (p.endsWith("*") ? "(.*)" : "([\\w-]+)") : Pattern.quote(p))
+                .map(p -> p.startsWith(":") ? (p.endsWith("*") ? "(.*)" : "([\\w-._]+)") : Pattern.quote(p))
                 .collect(Collectors.joining("\\/")) + "\\/?$";
 
             String[] paramNames = Arrays.stream(path.split("\\/"))
