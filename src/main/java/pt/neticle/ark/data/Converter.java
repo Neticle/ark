@@ -75,6 +75,11 @@ public class Converter
      */
     public final <TSource, TTarget> Optional<TypeConverter<TSource, TTarget>> getConverter (Class<TSource> sourceType, Class<TTarget> targetType)
     {
+        if(sourceType == targetType)
+        {
+            return Optional.of((o) -> Optional.of((TTarget) o));
+        }
+
         return Optional.ofNullable(typeConverters.get(sourceType, targetType));
     }
 
