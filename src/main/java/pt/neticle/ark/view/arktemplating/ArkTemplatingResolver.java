@@ -1,13 +1,14 @@
 package pt.neticle.ark.view.arktemplating;
 
-import org.xml.sax.SAXException;
 import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.base.DispatchContext;
 import pt.neticle.ark.data.output.ContentOutput;
 import pt.neticle.ark.data.output.Html;
+import pt.neticle.ark.exceptions.ExternalConditionException;
 import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.filesystem.ArkFs;
 import pt.neticle.ark.templating.TemplatingEngine;
+import pt.neticle.ark.templating.exception.LoaderException;
 import pt.neticle.ark.templating.renderer.MainScope;
 import pt.neticle.ark.templating.structure.ReadableElement;
 import pt.neticle.ark.view.DefaultViewTemplateResolver;
@@ -15,32 +16,60 @@ import pt.neticle.ark.view.Template;
 import pt.neticle.ark.view.View;
 import pt.neticle.ark.view.arktemplating.functions.RouteFn;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 public class ArkTemplatingResolver extends DefaultViewTemplateResolver
 {
+    private static final Logger Log = Logger.getLogger(ArkTemplatingResolver.class.getName());
+
     private final TemplatingEngine templatingEngine;
 
     public ArkTemplatingResolver ()
     {
         TemplatingEngine.Initializer init = TemplatingEngine.initializer();
 
-        Path bundledTemplatesFolder = ArkFs.resolveBundled(Paths.get("templates"));
+        Path bundledTemplatesFolder = ArkFs.resolveBundled(ArkTemplatingSettings.templatesBasePath.getValue());
         if(bundledTemplatesFolder != null && Files.exists(bundledTemplatesFolder) && Files.isDirectory(bundledTemplatesFolder))
         {
-            init.withSearchDirectory(bundledTemplatesFolder);
+            if(ArkTemplatingSettings.hotReload.getValue())
+            {
+                Log.info("Enabling ark-templating hot reload feature");
+
+                init.withHotloadErrorHandler((path, e) ->
+                {
+                    String message = e.getMessage();
+
+                    Throwable t = e.getCause();
+                    while(t != null)
+                    {
+                        message += "\n" + t.getMessage();
+                        t = t.getCause();
+                    }
+
+                    Log.severe(message);
+                });
+            }
+
+            init.withSearchDirectory(bundledTemplatesFolder, ArkTemplatingSettings.hotReload.getValue());
+        }
+        else
+        {
+            Log.warning("Specified templates base directory doesn't exist or is not a directory. " +
+                ((bundledTemplatesFolder != null) ? bundledTemplatesFolder.toString() : ""));
         }
 
         try
         {
             templatingEngine = init.build();
-        } catch(ParserConfigurationException | SAXException | IOException e)
+        } catch(LoaderException e)
         {
             throw new ImplementationException(e);
+        } catch(IOException e)
+        {
+            throw new ExternalConditionException(e);
         }
     }
 
@@ -72,6 +101,11 @@ public class ArkTemplatingResolver extends DefaultViewTemplateResolver
         }
 
         return tpl;
+    }
+
+    public TemplatingEngine getTemplatingEngine ()
+    {
+        return templatingEngine;
     }
 
     private static class TemplateWrapper implements Template
