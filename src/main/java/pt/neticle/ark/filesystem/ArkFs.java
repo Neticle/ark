@@ -44,6 +44,47 @@ public class ArkFs
      */
     public static Path resolveBundled (Path path)
     {
+        resolveBasePath();
+
+        return archiveFileSystem == null ? Paths.get(archiveBaseUri).resolve(path.toString()) :
+            archiveFileSystem.getPath(path.toString());
+    }
+
+    /**
+     * Resolves a path to a resource contained within the current working directory.
+     *
+     * @param path The path, relative to the current working directory.
+     * @return
+     */
+    public static Path resolve (Path path)
+    {
+        if(workingDir == null)
+        {
+            workingDir = Paths.get(System.getProperty("user.dir"));
+        }
+
+        return workingDir.resolve(path);
+    }
+
+    public static Path resolveBundled (String first, String... more)
+    {
+        return resolveBundled(Paths.get(first, more));
+    }
+
+    public static Path resolve (String first, String... more)
+    {
+        return resolve(Paths.get(first, more));
+    }
+
+    public static boolean bundledResourcesInArchive ()
+    {
+        resolveBasePath();
+
+        return archiveFileSystem != null;
+    }
+
+    private static void resolveBasePath ()
+    {
         if(archiveBaseUri == null)
         {
             Log.fine(() -> "Attempting to resolve archive base path");
@@ -89,8 +130,7 @@ public class ArkFs
                 {
                     throw new ExternalConditionException(e);
                 }
-            }
-            else
+            } else
             {
                 archiveFileSystem = null;
             }
@@ -98,34 +138,5 @@ public class ArkFs
             archiveBaseUri = resolved;
             Log.info(() -> "Determined bundled resources are located at " + archiveBaseUri.toString());
         }
-
-        return archiveFileSystem == null ? Paths.get(archiveBaseUri).resolve(path.toString()) :
-            archiveFileSystem.getPath(path.toString());
-    }
-
-    /**
-     * Resolves a path to a resource contained within the current working directory.
-     *
-     * @param path The path, relative to the current working directory.
-     * @return
-     */
-    public static Path resolve (Path path)
-    {
-        if(workingDir == null)
-        {
-            workingDir = Paths.get(System.getProperty("user.dir"));
-        }
-
-        return workingDir.resolve(path);
-    }
-
-    public static Path resolveBundled (String first, String... more)
-    {
-        return resolveBundled(Paths.get(first, more));
-    }
-
-    public static Path resolve (String first, String... more)
-    {
-        return resolve(Paths.get(first, more));
     }
 }
