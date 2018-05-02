@@ -17,6 +17,7 @@ package pt.neticle.ark.base;
 import pt.neticle.ark.annotations.Action;
 import pt.neticle.ark.annotations.Controller;
 import pt.neticle.ark.annotations.TemplateObject;
+import pt.neticle.ark.config.ArkConfig;
 import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.exceptions.ArkRuntimeException;
 import pt.neticle.ark.exceptions.ImplementationException;
@@ -56,6 +57,8 @@ public abstract class Application
 
     public Application (PolicyHoldingContext mainContext)
     {
+        ArkConfig.isPopulated();
+
         Log.info("Creating application instance");
 
         this.mainContext = mainContext;
@@ -191,7 +194,7 @@ public abstract class Application
                 {
                     if(tmpl == null)
                     {
-                        throw new ImplementationException("Couldn't resolve view template for " +
+                        throw new ImplementationException("Couldn't resolve view template '" + ((View) output).getName() + "' for " +
                             action.getControllerHandler().getControllerClass().getName() + "/" + action.getMethodName());
                     }
 
