@@ -30,6 +30,11 @@ public class ClassFinder
         scanner = new FastClasspathScanner(basePackage);
     }
 
+    public ClassFinder ()
+    {
+        scanner = new FastClasspathScanner();
+    }
+
     public void scan ()
     {
         scanner.scan();
