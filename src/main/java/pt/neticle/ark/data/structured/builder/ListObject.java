@@ -54,9 +54,19 @@ public class ListObject implements Node.List
         return add(new AssociativeObject(), initializer);
     }
 
+    public ListObject addObject (Node.Associative object)
+    {
+        return add(object, (o) -> {});
+    }
+
     public ListObject addList (Consumer<ListObject> initializer)
     {
         return add(new ListObject(), initializer);
+    }
+
+    public ListObject addList (Node.List list)
+    {
+        return add(list, (o) -> {});
     }
 
     private <TChildNode extends Node> ListObject add

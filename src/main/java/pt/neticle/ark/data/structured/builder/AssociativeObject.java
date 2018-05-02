@@ -46,9 +46,19 @@ public class AssociativeObject implements Node.Associative
         return with(key, new AssociativeObject(), initializer);
     }
 
+    public AssociativeObject withObject (String key, Node.Associative object)
+    {
+        return with(key, object, (o) -> {});
+    }
+
     public AssociativeObject withList (String key, Consumer<ListObject> initializer)
     {
         return with(key, new ListObject(), initializer);
+    }
+
+    public AssociativeObject withList (String key, Node.List list)
+    {
+        return with(key, list, (o) -> {});
     }
 
     private <TChildNode extends Node> AssociativeObject with
