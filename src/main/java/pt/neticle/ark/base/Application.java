@@ -124,7 +124,7 @@ public abstract class Application
         else
         {
             controller = ArkReflectionUtils.createInstanceNoArgs(controllerClass)
-                .orElseThrow(() -> new ImplementationException("Controller must have accessible default constructor"));
+                .orElseThrow(() -> new ImplementationException("Controller must have accessible default constructor; none found in " + controllerClass.getName()));
         }
 
         ControllerHandler controllerHandler =
