@@ -16,7 +16,6 @@ package pt.neticle.ark.base;
 
 import pt.neticle.ark.annotations.Action;
 import pt.neticle.ark.annotations.Controller;
-import pt.neticle.ark.annotations.TemplateObject;
 import pt.neticle.ark.config.ArkConfig;
 import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.exceptions.ArkRuntimeException;
@@ -25,8 +24,7 @@ import pt.neticle.ark.exceptions.InputException;
 import pt.neticle.ark.introspection.ArkReflectionUtils;
 import pt.neticle.ark.introspection.ArkTypeUtils;
 import pt.neticle.ark.introspection.ClassFinder;
-import pt.neticle.ark.view.Template;
-import pt.neticle.ark.view.View;
+import pt.neticle.ark.presentation.View;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -65,14 +63,12 @@ public abstract class Application
         this.context = new ApplicationContext(this.mainContext);
         this.components = new ArrayList<>();
 
-        component(context().getViewTemplateResolver());
         component(context().getRouter());
 
         initialize();
 
         ClassFinder classFinder = new ClassFinder(ArkTypeUtils.getPackageName(this.getClass()));
         classFinder.handleClassesAnnotatedWith(Controller.class, this::visitController);
-        classFinder.handleClassesAnnotatedWith(TemplateObject.class, this::visitTemplateObject);
         classFinder.scan();
 
         activate();
@@ -136,18 +132,6 @@ public abstract class Application
             .forEach(this::registerAction);
     }
 
-    private void visitTemplateObject (Class<?> tClass)
-    {
-        Log.fine("Visiting template object class: " + tClass.getName());
-
-        if(!Template.class.isAssignableFrom(tClass))
-        {
-            return;
-        }
-
-        context().getViewTemplateResolver().foundTemplateObject((Class<? extends Template>) tClass, tClass.getAnnotation(TemplateObject.class));
-    }
-
     private void registerAction (ActionHandler actionHandler)
     {
         context().getRouter().register(actionHandler);
@@ -183,49 +167,30 @@ public abstract class Application
             }
         }
 
+        if(output != null && output instanceof View)
+        {
+            output.ready();
+
+            try
+            {
+                output = ((View) output).generateOutput();
+            }
+            catch(InputException e)
+            {
+                output = handleActionHaltingError(action, e, dcontext, contextType);
+            }
+            catch(Throwable e)
+            {
+                output = handleActionHaltingInternalError(action, e, dcontext, contextType);
+            }
+        }
+
         if(output != null)
         {
-            int attempts = 0;
-            while(output instanceof View)
-            {
-                Template tmpl = context().getViewTemplateResolver().resolve(dcontext.getClass(), action, (View) output);
-
-                try
-                {
-                    if(tmpl == null)
-                    {
-                        throw new ImplementationException("Couldn't resolve view template '" + ((View) output).getName() + "' for " +
-                            action.getControllerHandler().getControllerClass().getName() + "/" + action.getMethodName());
-                    }
-
-                    output = tmpl.render(dcontext, action, (View) output);
-                }
-                catch(InputException e)
-                {
-                    output = handleActionHaltingError(action, e, dcontext, contextType);
-                }
-                catch(Throwable e)
-                {
-                    output = handleActionHaltingInternalError(action, e, dcontext, contextType);
-                }
-
-                attempts++;
-
-                if(attempts > 8)
-                {
-                    output = context().getFallbackInternalErrorHandler()
-                        .handleInternalError(dcontext, action, new ImplementationException("Unable to render error view."));
-
-                    break;
-                }
-            }
-
-            if(output != null)
-            {
-                output.ready();
-
-                dcontext.handleActionOutput(output);
-            }
+            // We check again because eventhough the action may have returned a view output, that view may have failed
+            // to produce a final output.
+            output.ready();
+            dcontext.handleActionOutput(output);
         }
     }
 
@@ -309,15 +274,7 @@ public abstract class Application
 
             if(output instanceof View)
             {
-                Template tmpl = context().getViewTemplateResolver().resolve(context.getClass(), action, (View)output);
-
-                if(tmpl == null)
-                {
-                    throw new ImplementationException("Couldn't resolve view template for " +
-                        action.getControllerHandler().getControllerClass().getName() + "/" + action.getMethodName());
-                }
-
-                output = tmpl.render(context, action, (View)output);
+                output = ((View) output).generateOutput();
             }
 
             context.handleActionOutput(output);

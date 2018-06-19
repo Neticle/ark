@@ -28,7 +28,6 @@ import pt.neticle.ark.injection.InjectionPolicy;
 import pt.neticle.ark.injection.InlineInjectionPolicy;
 import pt.neticle.ark.introspection.ArkTypeUtils;
 import pt.neticle.ark.runtime.Cast;
-import pt.neticle.ark.view.ViewTemplateResolver;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +42,6 @@ public class ApplicationContext extends PolicyHoldingContext
     private Router router;
     private ReverseRouter reverseRouter;
     private Converter ioConverter;
-    private ViewTemplateResolver viewTemplateResolver;
     private ErrorHandler<DispatchContext> fallbackErrorHandler;
     private InternalErrorHandler<DispatchContext> fallbackInternalErrorHandler;
     private final Map<Class<? extends DispatchContext>, ErrorHandler<? extends DispatchContext>> errorHandlers;
@@ -185,9 +183,6 @@ public class ApplicationContext extends PolicyHoldingContext
         ioConverter = inject(Converter.class, null, null)
             .orElseThrow(() -> new ImplementationException("Unable to obtain IO converter instance"));
 
-        viewTemplateResolver = inject(ViewTemplateResolver.class, null, null)
-            .orElseThrow(() -> new ImplementationException("Unable to obtain view template resolver instance"));
-
         fallbackErrorHandler = inject(ErrorHandler.class, null, new ArkTypeUtils.ParameterType(ErrorHandler.class, DispatchContext.class))
             .orElseThrow(() -> new ImplementationException("Unable to obtain fallback error handler instance"));
 
@@ -227,11 +222,6 @@ public class ApplicationContext extends PolicyHoldingContext
     public Converter getIoConverter ()
     {
         return ioConverter;
-    }
-
-    public ViewTemplateResolver getViewTemplateResolver ()
-    {
-        return viewTemplateResolver;
     }
 
     public ErrorHandler<DispatchContext> getFallbackErrorHandler ()

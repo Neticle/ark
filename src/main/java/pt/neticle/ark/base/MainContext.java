@@ -15,19 +15,14 @@
 package pt.neticle.ark.base;
 
 import pt.neticle.ark.data.Converter;
-import pt.neticle.ark.data.DefaultConverter;
 import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.failsafe.ErrorHandler;
 import pt.neticle.ark.failsafe.InternalErrorHandler;
-import pt.neticle.ark.failsafe.handlers.DefaultWebErrorHandler;
 import pt.neticle.ark.failsafe.handlers.FallbackErrorHandler;
 import pt.neticle.ark.http.HttpDispatchContext;
 import pt.neticle.ark.injection.InjectionPolicy;
 import pt.neticle.ark.injection.InlineInjectionPolicy;
 import pt.neticle.ark.introspection.ArkTypeUtils;
-import pt.neticle.ark.routing.DefaultRouter;
-import pt.neticle.ark.view.DefaultViewTemplateResolver;
-import pt.neticle.ark.view.ViewTemplateResolver;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -38,7 +33,6 @@ public class MainContext extends PolicyHoldingContext
     private static final Logger Log = Logger.getLogger(MainContext.class.getName());
 
     protected MainContext (Supplier<Router> routerSupplier, Supplier<Converter> converterSupplier,
-                           Supplier<ViewTemplateResolver> viewTemplateResolverSupplier,
                            Supplier<ErrorHandler<HttpDispatchContext>> webErrorHandler,
                            Supplier<InternalErrorHandler<HttpDispatchContext>> webInternalErrorHandler)
     {
@@ -56,12 +50,6 @@ public class MainContext extends PolicyHoldingContext
             Converter.class,
             InjectionPolicy.ObjectLifespan.RETAINED,
             (requstingContext, name, typeData) -> converterSupplier.get()
-        ));
-
-        addPolicy(new InlineInjectionPolicy<>(
-            ViewTemplateResolver.class,
-            InjectionPolicy.ObjectLifespan.RETAINED,
-            (requestingContext, name, typeData) -> viewTemplateResolverSupplier.get()
         ));
 
         addPolicy(new InlineInjectionPolicy<>(

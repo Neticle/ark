@@ -7,9 +7,6 @@ import pt.neticle.ark.failsafe.InternalErrorHandler;
 import pt.neticle.ark.failsafe.handlers.DefaultWebErrorHandler;
 import pt.neticle.ark.http.HttpDispatchContext;
 import pt.neticle.ark.routing.DefaultRouter;
-import pt.neticle.ark.view.DefaultViewTemplateResolver;
-import pt.neticle.ark.view.ViewTemplateResolver;
-import pt.neticle.ark.view.arktemplating.ArkTemplatingResolver;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -22,19 +19,6 @@ public class DefaultMainContext extends MainContext
     private static final Supplier<Converter> defaultConverterSupplier
             = DefaultConverter::new;
 
-    private static final Supplier<ViewTemplateResolver> defaultViewTemplateResolverSupplier = () ->
-    {
-        Class<?> te = null;
-
-        try
-        {
-            te = Class.forName("pt.neticle.ark.templating.TemplatingEngine");
-        } catch(ClassNotFoundException e) { }
-
-        return te == null ?
-            new DefaultViewTemplateResolver() :
-            new ArkTemplatingResolver();
-    };
 
     private static final Supplier<ErrorHandler<HttpDispatchContext>> defaultWebErrorHandler
             = DefaultWebErrorHandler::new;
@@ -44,22 +28,21 @@ public class DefaultMainContext extends MainContext
 
     public DefaultMainContext ()
     {
-        super(defaultRouterSupplier, defaultConverterSupplier, defaultViewTemplateResolverSupplier,
+        super(defaultRouterSupplier, defaultConverterSupplier,
                 defaultWebErrorHandler, defaultWebInternalErrorHandler);
     }
 
     protected DefaultMainContext (Supplier<Router> routerSupplier, Supplier<Converter> converterSupplier,
-        Supplier<ViewTemplateResolver> viewTemplateResolverSupplier, Supplier<ErrorHandler<HttpDispatchContext>> webErrorHandler,
+        Supplier<ErrorHandler<HttpDispatchContext>> webErrorHandler,
         Supplier<InternalErrorHandler<HttpDispatchContext>> webInternalErrorHandler)
     {
-        super(routerSupplier, converterSupplier, viewTemplateResolverSupplier, webErrorHandler, webInternalErrorHandler);
+        super(routerSupplier, converterSupplier, webErrorHandler, webInternalErrorHandler);
     }
 
     public static class Builder
     {
         private Supplier<Router> routerSupplier = defaultRouterSupplier;
         private Supplier<Converter> converterSupplier = defaultConverterSupplier;
-        private Supplier<ViewTemplateResolver> viewTemplateResolverSupplier = defaultViewTemplateResolverSupplier;
         private Supplier<ErrorHandler<HttpDispatchContext>> webErrorHandler = defaultWebErrorHandler;
         private Supplier<InternalErrorHandler<HttpDispatchContext>> webInternalErrorHandler = defaultWebInternalErrorHandler;
 
@@ -71,7 +54,7 @@ public class DefaultMainContext extends MainContext
 
         public DefaultMainContext build ()
         {
-            DefaultMainContext mc = new DefaultMainContext(routerSupplier, converterSupplier, viewTemplateResolverSupplier,
+            DefaultMainContext mc = new DefaultMainContext(routerSupplier, converterSupplier,
                 webErrorHandler, webInternalErrorHandler);
 
             if(customInitializator != null)
@@ -91,12 +74,6 @@ public class DefaultMainContext extends MainContext
         public Builder withConverterSupplier (Supplier<Converter> converterSupplier)
         {
             this.converterSupplier = converterSupplier;
-            return this;
-        }
-
-        public Builder withViewTemplateResolverSupplier (Supplier<ViewTemplateResolver> viewTemplateResolverSupplier)
-        {
-            this.viewTemplateResolverSupplier = viewTemplateResolverSupplier;
             return this;
         }
 
