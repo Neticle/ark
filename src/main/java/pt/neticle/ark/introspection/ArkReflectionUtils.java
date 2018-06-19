@@ -14,13 +14,18 @@
 
 package pt.neticle.ark.introspection;
 
+import pt.neticle.ark.exceptions.ExternalConditionException;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 public class ArkReflectionUtils
 {
+    private static final Logger Log = Logger.getLogger(ArkReflectionUtils.class.getName());
+
     /**
      * Creates a new object instance of the provided class, if the class has an accessible default constructor
      * (public, with no arguments).
@@ -36,9 +41,13 @@ public class ArkReflectionUtils
             Constructor<T> constr = classType.getConstructor();
 
             return Modifier.isPublic(constr.getModifiers()) ? Optional.of(constr.newInstance()) : Optional.empty();
-        } catch(NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e)
+        } catch(NoSuchMethodException | InstantiationException | IllegalAccessException e)
         {
+            Log.warning("Error creating instance of " + classType.getName() + ": " + e.getMessage());
             return Optional.empty();
+        } catch(InvocationTargetException e)
+        {
+            throw new ExternalConditionException(e);
         }
     }
 }
