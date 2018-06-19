@@ -1,5 +1,8 @@
 package pt.neticle.ark.ssrhtml;
 
+import pt.neticle.ark.data.output.Html;
+import pt.neticle.ark.exceptions.ExternalConditionException;
+
 import java.io.IOException;
 
 public class Element<T extends Element<T>> implements Renderable
@@ -61,5 +64,20 @@ public class Element<T extends Element<T>> implements Renderable
         out.append("</");
         out.append(this.name);
         out.append(">");
+    }
+    
+    public Html toHtmlOutput ()
+    {
+        Html o = Html.buffered();
+
+        try
+        {
+            this.render(o);
+        } catch(IOException e)
+        {
+            throw new ExternalConditionException(e);
+        }
+
+        return o;
     }
 }
