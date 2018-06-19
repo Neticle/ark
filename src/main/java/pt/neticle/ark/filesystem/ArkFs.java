@@ -21,10 +21,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.charset.Charset;
+import java.nio.file.*;
 import java.util.Collections;
 import java.util.logging.Logger;
 
@@ -35,6 +33,22 @@ public class ArkFs
     private static FileSystem archiveFileSystem;
     private static URI archiveBaseUri;
     private static Path workingDir;
+
+    public static String readTextFile (Path path, Charset charset)
+    {
+        try
+        {
+            return new String(Files.readAllBytes(path), charset);
+        } catch(IOException e)
+        {
+            return null;
+        }
+    }
+
+    public static String readTextFile (Path path)
+    {
+        return readTextFile(path, Charset.defaultCharset());
+    }
 
     /**
      * Resolves a usable path to a resource bundled with the application's JAR/WAR archive
