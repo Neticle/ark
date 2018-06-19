@@ -23,12 +23,12 @@ import java.nio.charset.StandardCharsets;
 
 public class Html extends Text<Html>
 {
-    private Html (OutputStream os, Charset charset)
+    protected Html (OutputStream os, Charset charset)
     {
         super(os, new ContentType(MediaType.Text.HTML, charset));
     }
 
-    private Html (Charset charset)
+    protected Html (Charset charset)
     {
         super(new ContentType(MediaType.Text.HTML, charset));
     }
