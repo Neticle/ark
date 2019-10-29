@@ -4,6 +4,7 @@ import pt.neticle.ark.base.ActionHandler;
 import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.data.output.PlainText;
 import pt.neticle.ark.exceptions.ArkRuntimeException;
+import pt.neticle.ark.exceptions.BusinessException;
 import pt.neticle.ark.exceptions.InputException;
 import pt.neticle.ark.failsafe.ErrorHandler;
 import pt.neticle.ark.failsafe.InternalErrorHandler;
@@ -52,6 +53,9 @@ public class DefaultWebErrorHandler implements ErrorHandler<HttpDispatchContext>
         } else if(exception instanceof InputException.RequestedResourceNotFound)
         {
             response.setStatusCode(HttpResponse.Status.NOT_FOUND);
+        } else if(exception instanceof BusinessException)
+        {
+            response.setStatusCode(((BusinessException) exception).getStatusCode());
         } else
         {
             response.setStatusCode(HttpResponse.Status.BAD_REQUEST);
