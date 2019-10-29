@@ -102,6 +102,13 @@ public class ArkConfig
             .forEach(e -> set(settingsStore.get(e.getKey()), e.getValue()));
     }
 
+    public static void accept (Properties settings)
+    {
+        settings.entrySet().stream()
+            .filter(e -> settingsStore.containsKey(e.getKey()))
+            .forEach(e -> set(settingsStore.get(e.getKey()), e.getValue().toString()));
+    }
+
     public static <T> void set (Setting<T> setting, String value)
     {
         Objects.requireNonNull(setting);
