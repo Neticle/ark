@@ -14,6 +14,8 @@
 
 package pt.neticle.ark.annotations;
 
+import pt.neticle.ark.http.HttpRequest;
+
 import java.lang.annotation.*;
 
 /**
@@ -28,4 +30,6 @@ import java.lang.annotation.*;
 public @interface Action
 {
     String path () default "";
+
+    HttpRequest.Method[] methods () default {};
 }
