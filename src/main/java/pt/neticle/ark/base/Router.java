@@ -14,6 +14,8 @@
 
 package pt.neticle.ark.base;
 
+import java.util.stream.Stream;
+
 /**
  * The router accepts existing action handlers and takes the necessary information
  * in order to compute and store the routes that lead up to each action.
@@ -25,4 +27,8 @@ public interface Router extends ReverseRouter
     void register (ActionHandler actionHandler);
 
     ActionHandler route (DispatchContext context);
+
+    Stream<ActionHandler> actionHandlers ();
+
+    Stream<ControllerHandler> controllerHandlers ();
 }

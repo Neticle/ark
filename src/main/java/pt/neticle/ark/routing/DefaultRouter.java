@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The default router implementation. Maps routes as a concatenation of the controller's path and
@@ -151,6 +152,18 @@ public class DefaultRouter implements Router, ReverseRouter
         }
 
         return actionsToRoutes.get(matched).build(pathParameters);
+    }
+
+    @Override
+    public Stream<ActionHandler> actionHandlers ()
+    {
+        return actionsToRoutes.keySet().stream();
+    }
+
+    @Override
+    public Stream<ControllerHandler> controllerHandlers ()
+    {
+        return controllersToRoutes.keySet().stream();
     }
 
     private String sourceNameToPathName (String sourceName)
