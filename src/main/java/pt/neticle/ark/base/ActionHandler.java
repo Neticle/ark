@@ -16,6 +16,8 @@ package pt.neticle.ark.base;
 
 import pt.neticle.ark.annotations.Action;
 import pt.neticle.ark.data.Pair;
+import pt.neticle.ark.data.input.Input;
+import pt.neticle.ark.data.input.OptionalInput;
 import pt.neticle.ark.data.output.Output;
 import pt.neticle.ark.exceptions.ImplementationException;
 import pt.neticle.ark.introspection.ArkTypeUtils;
@@ -26,6 +28,7 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  * An action handler object handles both descriptive data and invokation of controller actions.
@@ -172,6 +175,24 @@ public class ActionHandler
             // Pass-through any exceptions thrown within the action method
             throw e.getCause();
         }
+    }
+
+    public Stream<Pair<Parameter, ArkTypeUtils.ParameterType>> inputParameters ()
+    {
+        return parameters.stream()
+            .filter(p ->
+                Input.class.isAssignableFrom(p.A.getType()) ||
+                OptionalInput.class.isAssignableFrom(p.A.getType()));
+    }
+
+    public Method getMethod ()
+    {
+        return method;
+    }
+
+    public Action getAnnotation ()
+    {
+        return annotation;
     }
 
     /**
